@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -24,10 +24,8 @@ import java.io.Serializable;
 import java.util.concurrent.TimeoutException;
 
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ReturnListener;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.NoTypeConversionAvailableException;
@@ -49,13 +47,18 @@ public class RabbitMQMessagePublisher {
     private volatile boolean basicReturnReceived;
     private final ReturnListener guaranteedDeliveryReturnListener = new ReturnListener() {
         @Override
-        public void handleReturn(int replyCode, String replyText, String exchange, String routingKey, AMQP.BasicProperties properties, byte[] body) throws IOException {
-            LOG.warn("Delivery failed for exchange {} and routing key {}; replyCode = {}; replyText = {}", exchange, routingKey, replyCode, replyText);
+        public void handleReturn(
+                int replyCode, String replyText, String exchange, String routingKey, AMQP.BasicProperties properties,
+                byte[] body)
+                throws IOException {
+            LOG.warn("Delivery failed for exchange: {} and routing key: {}; replyCode: {}; replyText: {}", exchange, routingKey,
+                    replyCode, replyText);
             basicReturnReceived = true;
         }
     };
 
-    public RabbitMQMessagePublisher(final Exchange camelExchange, final Channel channel, final String routingKey, final RabbitMQEndpoint endpoint) {
+    public RabbitMQMessagePublisher(final Exchange camelExchange, final Channel channel, final String routingKey,
+                                    final RabbitMQEndpoint endpoint) {
         this.camelExchange = camelExchange;
         this.channel = channel;
         this.routingKey = routingKey;
@@ -64,15 +67,18 @@ public class RabbitMQMessagePublisher {
     }
 
     private Message resolveMessageFrom(final Exchange camelExchange) {
-        Message message = camelExchange.hasOut() ? camelExchange.getOut() : camelExchange.getIn();
+        Message message = camelExchange.getMessage();
 
         // Remove the SERIALIZE_HEADER in case it was previously set
         if (message.getHeaders() != null && message.getHeaders().containsKey(RabbitMQEndpoint.SERIALIZE_HEADER)) {
-            LOG.debug("Removing the {} header", RabbitMQEndpoint.SERIALIZE_HEADER);
+            LOG.trace("Removing header: {}", RabbitMQEndpoint.SERIALIZE_HEADER);
             message.getHeaders().remove(RabbitMQEndpoint.SERIALIZE_HEADER);
         }
         if (routingKey != null && routingKey.startsWith(RabbitMQConstants.RABBITMQ_DIRECT_REPLY_ROUTING_KEY)) {
-            message.setHeader(RabbitMQConstants.EXCHANGE_NAME, RabbitMQConstants.RABBITMQ_DIRECT_REPLY_EXCHANGE); // use default exchange for reply-to messages
+            // use default exchange for reply-to messages
+            message.setHeader(RabbitMQConstants.EXCHANGE_NAME, RabbitMQConstants.RABBITMQ_DIRECT_REPLY_EXCHANGE);
+            message.setHeader(RabbitMQConstants.EXCHANGE_OVERRIDE_NAME,
+                    RabbitMQConstants.RABBITMQ_DIRECT_REPLY_EXCHANGE);
         }
 
         return message;
@@ -82,13 +88,19 @@ public class RabbitMQMessagePublisher {
         AMQP.BasicProperties properties;
         byte[] body;
         try {
-            // To maintain backwards compatibility try the TypeConverter (The DefaultTypeConverter seems to only work on Strings)
-            body = camelExchange.getContext().getTypeConverter().mandatoryConvertTo(byte[].class, camelExchange, message.getBody());
+            // To maintain backwards compatibility try the TypeConverter (The
+            // DefaultTypeConverter seems to only work on Strings)
+            body = camelExchange.getContext().getTypeConverter().mandatoryConvertTo(byte[].class, camelExchange,
+                    message.getBody());
 
             properties = endpoint.getMessageConverter().buildProperties(camelExchange).build();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Exchange properties: {}", properties);
+            }
         } catch (NoTypeConversionAvailableException | TypeConversionException e) {
-            if (message.getBody() instanceof Serializable) {
-                // Add the header so the reply processor knows to de-serialize it
+            if (message.getBody() instanceof Serializable && endpoint.isAllowMessageBodySerialization()) {
+                // Add the header so the reply processor knows to de-serialize
+                // it
                 message.getHeaders().put(RabbitMQEndpoint.SERIALIZE_HEADER, true);
                 properties = endpoint.getMessageConverter().buildProperties(camelExchange).build();
                 body = serializeBodyFrom(message);
@@ -96,7 +108,7 @@ public class RabbitMQMessagePublisher {
                 properties = endpoint.getMessageConverter().buildProperties(camelExchange).build();
                 body = null;
             } else {
-                LOG.warn("Could not convert {} to byte[]", message.getBody());
+                LOG.warn("Cannot convert {} to byte[]", message.getBody());
                 throw new RuntimeCamelException(e);
             }
         }
@@ -105,12 +117,22 @@ public class RabbitMQMessagePublisher {
     }
 
     private void publishToRabbitMQ(final AMQP.BasicProperties properties, final byte[] body) throws IOException {
-        String rabbitExchange = endpoint.getExchangeName(message);
+        String exchangeName = (String) message.getHeader(RabbitMQConstants.EXCHANGE_OVERRIDE_NAME);
+        // If it is BridgeEndpoint we should ignore the message header of
+        // EXCHANGE_OVERRIDE_NAME
+        if (exchangeName == null || endpoint.isBridgeEndpoint()) {
+            exchangeName = endpoint.getExchangeName();
+        } else {
+            LOG.debug("Overriding header: {} detected sending message to exchange: {}",
+                    RabbitMQConstants.EXCHANGE_OVERRIDE_NAME, exchangeName);
+        }
 
-        Boolean mandatory = camelExchange.getIn().getHeader(RabbitMQConstants.MANDATORY, endpoint.isMandatory(), Boolean.class);
-        Boolean immediate = camelExchange.getIn().getHeader(RabbitMQConstants.IMMEDIATE, endpoint.isImmediate(), Boolean.class);
+        Boolean mandatory
+                = camelExchange.getIn().getHeader(RabbitMQConstants.MANDATORY, endpoint.isMandatory(), Boolean.class);
+        Boolean immediate
+                = camelExchange.getIn().getHeader(RabbitMQConstants.IMMEDIATE, endpoint.isImmediate(), Boolean.class);
 
-        LOG.debug("Sending message to exchange: {} with CorrelationId = {}", rabbitExchange, properties.getCorrelationId());
+        LOG.debug("Sending message to exchange: {} with CorrelationId: {}", exchangeName, properties.getCorrelationId());
 
         if (isPublisherAcknowledgements()) {
             channel.confirmSelect();
@@ -121,7 +143,7 @@ public class RabbitMQMessagePublisher {
         }
 
         try {
-            channel.basicPublish(rabbitExchange, routingKey, mandatory, immediate, properties, body);
+            channel.basicPublish(exchangeName, routingKey, mandatory, immediate, properties, body);
             if (isPublisherAcknowledgements()) {
                 waitForConfirmation();
             }
@@ -154,7 +176,8 @@ public class RabbitMQMessagePublisher {
             o.writeObject(msg.getBody());
             return b.toByteArray();
         } catch (NotSerializableException nse) {
-            LOG.warn("Can not send object " + msg.getBody().getClass() + " via RabbitMQ because it contains non-serializable objects.");
+            LOG.warn("Cannot send object {} via RabbitMQ because it contains non-serializable objects.",
+                    msg.getBody().getClass());
             throw new RuntimeCamelException(nse);
         }
     }

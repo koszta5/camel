@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -25,7 +25,6 @@ import io.swagger.models.Operation;
 import io.swagger.models.parameters.AbstractSerializableParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.Property;
-
 import org.apache.camel.model.rest.CollectionFormat;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.camel.util.ObjectHelper;
@@ -36,10 +35,14 @@ class OperationVisitor<T> {
 
     private final CodeEmitter<T> emitter;
 
+    private final OperationFilter filter;
+
     private final String path;
 
-    OperationVisitor(final CodeEmitter<T> emitter, final String path, final DestinationGenerator destinationGenerator) {
+    OperationVisitor(final CodeEmitter<T> emitter, final OperationFilter filter, final String path,
+                     final DestinationGenerator destinationGenerator) {
         this.emitter = emitter;
+        this.filter = filter;
         this.path = path;
         this.destinationGenerator = destinationGenerator;
     }
@@ -72,7 +75,10 @@ class OperationVisitor<T> {
             if (ObjectHelper.isNotEmpty(collectionFormat)) {
                 emit("collectionFormat", CollectionFormat.valueOf(collectionFormat));
             }
-            emit("defaultValue", serializableParameter.getDefault());
+            if (ObjectHelper.isNotEmpty(serializableParameter.getDefault())) {
+                String value = serializableParameter.getDefault().toString();
+                emit("defaultValue", value);
+            }
 
             final Property items = serializableParameter.getItems();
             if ("array".equals(dataType) && items != null) {
@@ -91,7 +97,7 @@ class OperationVisitor<T> {
             return emitter;
         }
 
-        return emitter.emit(method, new Object[] {values.toArray(new String[values.size()])});
+        return emitter.emit(method, new Object[] { values.toArray(new String[values.size()]) });
     }
 
     CodeEmitter<T> emit(final String method, final Object value) {
@@ -103,18 +109,20 @@ class OperationVisitor<T> {
     }
 
     void visit(final HttpMethod method, final Operation operation) {
-        final String methodName = method.name().toLowerCase();
-        emitter.emit(methodName, path);
+        if (filter.accept(operation.getOperationId())) {
+            final String methodName = method.name().toLowerCase();
+            emitter.emit(methodName, path);
 
-        emit("id", operation.getOperationId());
-        emit("description", operation.getDescription());
-        emit("consumes", operation.getConsumes());
-        emit("produces", operation.getProduces());
+            emit("id", operation.getOperationId());
+            emit("description", operation.getDescription());
+            emit("consumes", operation.getConsumes());
+            emit("produces", operation.getProduces());
 
-        operation.getParameters().forEach(parameter -> {
-            emit(parameter);
-        });
+            operation.getParameters().forEach(parameter -> {
+                emit(parameter);
+            });
 
-        emitter.emit("to", destinationGenerator.generateDestinationFor(operation));
+            emitter.emit("to", destinationGenerator.generateDestinationFor(operation));
+        }
     }
 }

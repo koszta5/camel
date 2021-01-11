@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -23,29 +23,35 @@ import org.apache.camel.Processor;
 import org.apache.camel.component.cxf.CXFTestSupport;
 import org.apache.camel.component.cxf.common.message.CxfConstants;
 import org.apache.camel.component.cxf.jaxrs.testbean.Customer;
-import org.apache.camel.test.spring.CamelSpringTestSupport;
-import org.junit.Test;
+import org.apache.camel.test.spring.junit5.CamelSpringTestSupport;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.support.AbstractXmlApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 public class CxfRsProducerAddressOverrideTest extends CamelSpringTestSupport {
     private static int port1 = CXFTestSupport.getPort1();
-    private static int port2 = CXFTestSupport.getPort("CxfRsProducerAddressOverrideTest.jetty"); 
+    private static int port2 = CXFTestSupport.getPort("CxfRsProducerAddressOverrideTest.jetty");
+
     public int getPort1() {
         return port1;
     }
+
     public int getPort2() {
         return port2;
     }
 
     @Override
-    protected AbstractXmlApplicationContext createApplicationContext() {       
-        return new ClassPathXmlApplicationContext("org/apache/camel/component/cxf/jaxrs/CxfRsSpringProducerAddressOverride.xml");
+    protected AbstractXmlApplicationContext createApplicationContext() {
+        return new ClassPathXmlApplicationContext(
+                "org/apache/camel/component/cxf/jaxrs/CxfRsSpringProducerAddressOverride.xml");
     }
-    
+
     protected void setupDestinationURL(Message inMessage) {
-        inMessage.setHeader(Exchange.DESTINATION_OVERRIDE_URL, 
-            "http://localhost:" + getPort1() + "/CxfRsProducerAddressOverrideTest");
+        inMessage.setHeader(Exchange.DESTINATION_OVERRIDE_URL,
+                "http://localhost:" + getPort1() + "/CxfRsProducerAddressOverrideTest");
     }
 
     @Test
@@ -64,13 +70,13 @@ public class CxfRsProducerAddressOverrideTest extends CamelSpringTestSupport {
                 setupDestinationURL(inMessage);
             }
         });
-     
+
         // get the response message 
-        Customer response = (Customer) exchange.getOut().getBody();
-        
-        assertNotNull("The response should not be null ", response);
-        assertEquals("Get a wrong customer id ", 123, response.getId());
-        assertEquals("Get a wrong customer name", "John", response.getName());
+        Customer response = (Customer) exchange.getMessage().getBody();
+
+        assertNotNull(response, "The response should not be null");
+        assertEquals(123, response.getId(), "Get a wrong customer id");
+        assertEquals("John", response.getName(), "Get a wrong customer name");
     }
 
     @Test
@@ -84,21 +90,21 @@ public class CxfRsProducerAddressOverrideTest extends CamelSpringTestSupport {
                 // set the Http method
                 inMessage.setHeader(Exchange.HTTP_METHOD, "GET");
                 // set the relative path
-                inMessage.setHeader(Exchange.HTTP_PATH, "/customerservice/customers/123");                
+                inMessage.setHeader(Exchange.HTTP_PATH, "/customerservice/customers/123");
                 // Specify the response class , cxfrs will use InputStream as the response object type 
                 inMessage.setHeader(CxfConstants.CAMEL_CXF_RS_RESPONSE_CLASS, Customer.class);
                 setupDestinationURL(inMessage);
             }
         });
-     
+
         // get the response message 
-        Customer response = (Customer) exchange.getOut().getBody();
-        
-        assertNotNull("The response should not be null ", response);
-        assertEquals("Get a wrong customer id ", 123, response.getId());
-        assertEquals("Get a wrong customer name", "John", response.getName());
+        Customer response = (Customer) exchange.getMessage().getBody();
+
+        assertNotNull(response, "The response should not be null");
+        assertEquals(123, response.getId(), "Get a wrong customer id");
+        assertEquals("John", response.getName(), "Get a wrong customer name");
     }
-    
+
     @Test
     public void testGetCustomerWithAsyncProxyAPIByOverrideDest() {
         Exchange exchange = template.send("cxfrs:bean:rsClientProxy", new Processor() {
@@ -115,15 +121,15 @@ public class CxfRsProducerAddressOverrideTest extends CamelSpringTestSupport {
                 setupDestinationURL(inMessage);
             }
         });
-     
+
         // get the response message 
-        Customer response = (Customer) exchange.getOut().getBody();
-        
-        assertNotNull("The response should not be null ", response);
-        assertEquals("Get a wrong customer id ", 123, response.getId());
-        assertEquals("Get a wrong customer name", "John", response.getName());
+        Customer response = (Customer) exchange.getMessage().getBody();
+
+        assertNotNull(response, "The response should not be null");
+        assertEquals(123, response.getId(), "Get a wrong customer id");
+        assertEquals("John", response.getName(), "Get a wrong customer name");
     }
-    
+
     @Test
     public void testGetCustomerWithAsyncHttpAPIByOverrideDest() {
         Exchange exchange = template.send("cxfrs:bean:rsClientHttp", new Processor() {
@@ -135,18 +141,65 @@ public class CxfRsProducerAddressOverrideTest extends CamelSpringTestSupport {
                 // set the Http method
                 inMessage.setHeader(Exchange.HTTP_METHOD, "GET");
                 // set the relative path
-                inMessage.setHeader(Exchange.HTTP_PATH, "/customerservice/customers/123");                
-                // Specify the response class , cxfrs will use InputStream as the response object type 
+                inMessage.setHeader(Exchange.HTTP_PATH, "/customerservice/customers/123");
+                // Specify the response class , cxfrs will use InputStream as
+                // the response object type
                 inMessage.setHeader(CxfConstants.CAMEL_CXF_RS_RESPONSE_CLASS, Customer.class);
                 setupDestinationURL(inMessage);
             }
         });
-     
-        // get the response message 
-        Customer response = (Customer) exchange.getOut().getBody();
-        
-        assertNotNull("The response should not be null", response);
-        assertEquals("Get a wrong customer id ", 123, response.getId());
-        assertEquals("Get a wrong customer name", "John", response.getName());
+
+        // get the response message
+        Customer response = (Customer) exchange.getMessage().getBody();
+
+        assertNotNull(response, "The response should not be null");
+        assertEquals(123, response.getId(), "Get a wrong customer id");
+        assertEquals("John", response.getName(), "Get a wrong customer name");
+    }
+
+    @Test
+    public void testAddressMultiOverride() {
+        // First call with override url
+        Exchange exchange = template.send("direct://http",
+                new SendProcessor("http://localhost:" + getPort1() + "/CxfRsProducerAddressOverrideTest"));
+        // get the response message
+        Customer response = exchange.getMessage().getBody(Customer.class);
+        assertNotNull(response, "The response should not be null");
+
+        // Second call with override url
+        exchange = template.send("direct://http",
+                new SendProcessor("http://localhost:" + getPort1() + "/CxfRsProducerNonExistingAddressOverrideTest"));
+
+        // Third call with override url ( we reuse the first url there )
+        exchange = template.send("direct://http",
+                new SendProcessor("http://localhost:" + getPort1() + "/CxfRsProducerAddressOverrideTest"));
+        // get the response message
+        response = exchange.getMessage().getBody(Customer.class);
+        assertNotNull(response, "The response should not be null");
+    }
+
+    class SendProcessor implements Processor {
+        private String address;
+
+        public SendProcessor(String address) {
+            this.address = address;
+        }
+
+        @Override
+        public void process(Exchange exchange) throws Exception {
+            exchange.setPattern(ExchangePattern.InOut);
+            Message inMessage = exchange.getIn();
+
+            // using the http central client API
+            inMessage.setHeader(CxfConstants.CAMEL_CXF_RS_USING_HTTP_API, Boolean.TRUE);
+            // set the Http method
+            inMessage.setHeader(Exchange.HTTP_METHOD, "GET");
+            // set the relative path
+            inMessage.setHeader(Exchange.HTTP_PATH, "/customerservice/customers/123");
+            // Specify the response class , cxfrs will use InputStream as the
+            // response object type
+            inMessage.setHeader(CxfConstants.CAMEL_CXF_RS_RESPONSE_CLASS, Customer.class);
+            inMessage.setHeader(Exchange.DESTINATION_OVERRIDE_URL, address);
+        }
     }
 }

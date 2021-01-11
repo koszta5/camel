@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -22,20 +22,18 @@ import org.apache.camel.component.wordpress.api.WordpressConstants;
 import org.apache.camel.component.wordpress.api.model.Content;
 import org.apache.camel.component.wordpress.api.model.Post;
 import org.apache.camel.component.wordpress.api.model.PublishableStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class WordpressPostOperationTest extends WordpressComponentTestSupport {
-
-    public WordpressPostOperationTest() {
-
-    }
 
     @Test
     public void testPostSingleRequest() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:resultSingle");
         mock.expectedMinimumMessageCount(1);
-        mock.expectedBodyReceived().body(Post.class);
+        mock.allMessages().body().isInstanceOf(Post.class);
 
         assertMockEndpointsSatisfied();
     }
@@ -44,7 +42,7 @@ public class WordpressPostOperationTest extends WordpressComponentTestSupport {
     public void testPostListRequest() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:resultList");
         mock.expectedMinimumMessageCount(1);
-        mock.expectedBodyReceived().body(Post.class);
+        mock.allMessages().body().isInstanceOf(Post.class);
 
         assertMockEndpointsSatisfied();
     }
@@ -59,7 +57,7 @@ public class WordpressPostOperationTest extends WordpressComponentTestSupport {
         request.setAuthor(2);
         request.setTitle(new Content("hello from postman 2"));
 
-        final Post response = (Post)template.requestBody("direct:insertPost", request);
+        final Post response = (Post) template.requestBody("direct:insertPost", request);
         assertThat(response.getId(), is(9));
         assertThat(response.getStatus(), is(PublishableStatus.draft));
 
@@ -76,7 +74,7 @@ public class WordpressPostOperationTest extends WordpressComponentTestSupport {
         request.setAuthor(2);
         request.setTitle(new Content("hello from postman 2 - update"));
 
-        final Post response = (Post)template.requestBody("direct:updatePost", request);
+        final Post response = (Post) template.requestBody("direct:updatePost", request);
         assertThat(response.getId(), is(9));
         assertThat(response.getStatus(), is(PublishableStatus.draft));
         assertThat(response.getTitle().getRaw(), is("hello from postman 2 - update"));
@@ -91,7 +89,7 @@ public class WordpressPostOperationTest extends WordpressComponentTestSupport {
         mock.expectedBodyReceived().body(Post.class);
         mock.expectedMessageCount(1);
 
-        final Post response = (Post)template.requestBody("direct:deletePost", "");
+        final Post response = (Post) template.requestBody("direct:deletePost", "");
         assertThat(response.getId(), is(9));
         assertThat(response.getStatus(), is(PublishableStatus.trash));
 
@@ -102,18 +100,20 @@ public class WordpressPostOperationTest extends WordpressComponentTestSupport {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                final WordpressComponentConfiguration configuration = new WordpressComponentConfiguration();
+                final WordpressConfiguration configuration = new WordpressConfiguration();
                 final WordpressComponent component = new WordpressComponent();
                 configuration.setApiVersion(WordpressConstants.API_VERSION);
                 configuration.setUrl(getServerBaseUrl());
                 component.setConfiguration(configuration);
                 getContext().addComponent("wordpress", component);
 
-                from("wordpress:post?criteria.perPage=10&criteria.orderBy=author&criteria.categories=camel,dozer,json").to("mock:resultList");
+                from("wordpress:post?criteria.perPage=10&criteria.orderBy=author&criteria.categories=camel,dozer,json")
+                        .to("mock:resultList");
 
                 from("wordpress:post?id=114913").to("mock:resultSingle");
 
-                from("direct:deletePost").to("wordpress:post:delete?id=9&user=ben&password=password123").to("mock:resultDelete");
+                from("direct:deletePost").to("wordpress:post:delete?id=9&user=ben&password=password123")
+                        .to("mock:resultDelete");
                 from("direct:insertPost").to("wordpress:post?user=ben&password=password123").to("mock:resultInsert");
                 from("direct:updatePost").to("wordpress:post?id=9&user=ben&password=password123").to("mock:resultUpdate");
             }

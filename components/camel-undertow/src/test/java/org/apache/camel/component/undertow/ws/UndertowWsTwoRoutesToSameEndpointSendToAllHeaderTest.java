@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -26,29 +26,35 @@ import org.apache.camel.component.undertow.BaseUndertowTest;
 import org.apache.camel.component.undertow.UndertowConstants;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.ws.WebSocket;
-import org.asynchttpclient.ws.WebSocketTextListener;
+import org.asynchttpclient.ws.WebSocketListener;
 import org.asynchttpclient.ws.WebSocketUpgradeHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UndertowWsTwoRoutesToSameEndpointSendToAllHeaderTest extends BaseUndertowTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(UndertowWsTwoRoutesToSameEndpointSendToAllHeaderTest.class);
 
     @Test
     public void testWSHttpCallEcho() throws Exception {
 
         // We call the route WebSocket BAR
-        final List<String> received = new ArrayList<String>();
+        final List<String> received = new ArrayList<>();
         final CountDownLatch latch = new CountDownLatch(2);
 
         DefaultAsyncHttpClient c = new DefaultAsyncHttpClient();
 
         WebSocket websocket = c.prepareGet("ws://localhost:" + getPort() + "/bar").execute(
                 new WebSocketUpgradeHandler.Builder()
-                        .addWebSocketListener(new WebSocketTextListener() {
+                        .addWebSocketListener(new WebSocketListener() {
                             @Override
-                            public void onMessage(String message) {
+                            public void onTextFrame(String message, boolean finalFragment, int rsv) {
                                 received.add(message);
-                                log.info("received --> " + message);
+                                LOG.info("received --> " + message);
                                 latch.countDown();
                             }
 
@@ -57,16 +63,17 @@ public class UndertowWsTwoRoutesToSameEndpointSendToAllHeaderTest extends BaseUn
                             }
 
                             @Override
-                            public void onClose(WebSocket websocket) {
+                            public void onClose(WebSocket websocket, int code, String reason) {
                             }
 
                             @Override
                             public void onError(Throwable t) {
-                                t.printStackTrace();
+                                LOG.warn("Unhandled exception: {}", t.getMessage(), t);
                             }
-                        }).build()).get();
+                        }).build())
+                .get();
 
-        websocket.sendMessage("Beer");
+        websocket.sendTextFrame("Beer");
         assertTrue(latch.await(10, TimeUnit.SECONDS));
 
         assertEquals(2, received.size());
@@ -75,7 +82,7 @@ public class UndertowWsTwoRoutesToSameEndpointSendToAllHeaderTest extends BaseUn
         assertTrue(received.contains("The bar has Beer"));
         assertTrue(received.contains("Broadcasting to Bar"));
 
-        websocket.close();
+        websocket.sendCloseFrame();
         c.close();
     }
 
@@ -85,7 +92,7 @@ public class UndertowWsTwoRoutesToSameEndpointSendToAllHeaderTest extends BaseUn
             public void configure() {
 
                 final int port = getPort();
-                from("undertow:ws://localhost:" + port  + "/bar")
+                from("undertow:ws://localhost:" + port + "/bar")
                         .log(">>> Message received from BAR WebSocket Client : ${body}")
                         .transform().simple("The bar has ${body}")
                         .to("undertow:ws://localhost:" + port + "/bar");

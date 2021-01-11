@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -33,6 +33,7 @@ import com.jayway.jsonpath.Option;
 import org.apache.camel.CamelExchangeException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Expression;
+import org.apache.camel.StreamCache;
 import org.apache.camel.component.file.GenericFile;
 import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
@@ -67,20 +68,14 @@ public class JsonPathEngine {
         this.writeAsString = writeAsString;
         this.headerName = headerName;
 
-        Configuration defaults = Configuration.defaultConfiguration();
+        Configuration.ConfigurationBuilder builder = Configuration.builder();
         if (options != null) {
-            Configuration.ConfigurationBuilder builder = Configuration.builder().jsonProvider(defaults.jsonProvider()).options(options);
-            if (suppressExceptions) {
-                builder.options(SUPPRESS_EXCEPTIONS);
-            }
-            this.configuration = builder.build();
-        } else {
-            Configuration.ConfigurationBuilder builder = Configuration.builder().jsonProvider(defaults.jsonProvider());
-            if (suppressExceptions) {
-                builder.options(SUPPRESS_EXCEPTIONS);
-            }
-            this.configuration = builder.build();
+            builder.options(options);
         }
+        if (suppressExceptions) {
+            builder.options(SUPPRESS_EXCEPTIONS);
+        }
+        this.configuration = builder.build();
 
         boolean hasSimple = false;
         if (allowSimple) {
@@ -209,9 +204,9 @@ public class JsonPathEngine {
 
         // okay it was not then lets throw a failure
         if (headerName != null) {
-            throw new CamelExchangeException("Cannot read message header " + headerName + " as supported JSon value", exchange);
+            throw new CamelExchangeException("Cannot read message header " + headerName + " as supported JSON value", exchange);
         } else {
-            throw new CamelExchangeException("Cannot read message body as supported JSon value", exchange);
+            throw new CamelExchangeException("Cannot read message body as supported JSON value", exchange);
         }
     }
 
@@ -220,6 +215,11 @@ public class JsonPathEngine {
         LOG.trace("JSonPath: {} is read as InputStream: {}", path, json);
 
         InputStream is = exchange.getContext().getTypeConverter().tryConvertTo(InputStream.class, exchange, json);
+
+        if (json instanceof StreamCache) {
+            ((StreamCache) json).reset();
+        }
+
         if (is != null) {
             String jsonEncoding = exchange.getIn().getHeader(JsonPathConstants.HEADER_JSON_ENCODING, String.class);
             if (jsonEncoding != null) {
@@ -245,9 +245,15 @@ public class JsonPathEngine {
         if (adapter != null) {
             LOG.trace("Attempting to use JacksonJsonAdapter: {}", adapter);
             Map map = adapter.readValue(json, exchange);
+
+            if (json instanceof StreamCache) {
+                ((StreamCache) json).reset();
+            }
+
             if (map != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("JacksonJsonAdapter converted object from: {} to: java.util.Map", ObjectHelper.classCanonicalName(json));
+                    LOG.debug("JacksonJsonAdapter converted object from: {} to: java.util.Map",
+                            ObjectHelper.classCanonicalName(json));
                 }
                 return path.read(map, configuration);
             }
@@ -271,7 +277,10 @@ public class JsonPathEngine {
                     }
                 }
             } catch (Throwable e) {
-                // ignore
+                LOG.debug(
+                        "Cannot load {} from classpath to enable JacksonJsonAdapter due {}. JacksonJsonAdapter is not enabled.",
+                        JACKSON_JSON_ADAPTER, e.getMessage(),
+                        e);
             }
             initJsonAdapter = true;
         }

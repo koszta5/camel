@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -14,18 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.camel.component.mllp;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
+import org.apache.camel.Category;
 import org.apache.camel.Consumer;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -33,25 +30,25 @@ import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.api.management.ManagedAttribute;
 import org.apache.camel.api.management.ManagedResource;
-import org.apache.camel.component.mllp.internal.Hl7Util;
-import org.apache.camel.impl.DefaultEndpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
+import org.apache.camel.support.DefaultEndpoint;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Provides functionality required by Healthcare providers to communicate with other systems using the MLLP protocol.
+ * Communicate with external systems using the MLLP protocol.
  *
  * <p/>
- * NOTE: MLLP payloads are not logged unless the logging level is set to DEBUG or TRACE to avoid introducing PHI into the log files.  Logging of PHI can be globally disabled by setting the
- * org.apache.camel.mllp.logPHI system property to false.
+ * NOTE: MLLP payloads are not logged unless the logging level is set to DEBUG or TRACE to avoid introducing PHI into
+ * the log files. Logging of PHI can be globally disabled by setting the org.apache.camel.mllp.logPHI system property to
+ * false.
  * <p/>
  */
 @ManagedResource(description = "MLLP Endpoint")
-@UriEndpoint(scheme = "mllp", firstVersion = "2.17.0", title = "MLLP", syntax = "mllp:hostname:port", consumerClass = MllpTcpServerConsumer.class, label = "mllp")
+@UriEndpoint(scheme = "mllp", firstVersion = "2.17.0", title = "MLLP", syntax = "mllp:hostname:port",
+             category = { Category.NETWORKING, Category.RPC, Category.MLLP }, generateConfigurer = false)
 public class MllpEndpoint extends DefaultEndpoint {
     // Use constants from MllpProtocolConstants
     @Deprecated()
@@ -67,17 +64,15 @@ public class MllpEndpoint extends DefaultEndpoint {
     @Deprecated()
     public static final char MESSAGE_TERMINATOR = MllpProtocolConstants.MESSAGE_TERMINATOR;
 
-    @Deprecated // Use constants from MllpProtocolConstants
-    public static final Charset DEFAULT_CHARSET = MllpProtocolConstants.DEFAULT_CHARSET;
-
-    private static final Logger LOG = LoggerFactory.getLogger(MllpEndpoint.class);
+    @Deprecated // Use MllpComponent.getDefaultCharset()
+    public static final Charset DEFAULT_CHARSET = MllpComponent.getDefaultCharset();
 
     @UriPath
-    @Metadata(required = "true")
+    @Metadata(required = true)
     String hostname;
 
     @UriPath
-    @Metadata(required = "true")
+    @Metadata(required = true)
     int port = -1;
 
     @UriParam(label = "advanced")
@@ -94,13 +89,6 @@ public class MllpEndpoint extends DefaultEndpoint {
         super.setBridgeErrorHandler(configuration.isBridgeErrorHandler());
         super.setExchangePattern(configuration.getExchangePattern());
         super.setSynchronous(configuration.isSynchronous());
-    }
-
-    @Override
-    public Exchange createExchange(Exchange exchange) {
-        Exchange mllpExchange = super.createExchange(exchange);
-        setExchangeProperties(mllpExchange);
-        return mllpExchange;
     }
 
     @Override
@@ -134,20 +122,16 @@ public class MllpEndpoint extends DefaultEndpoint {
         }
     }
 
+    @Override
     public Producer createProducer() throws Exception {
-        LOG.trace("({}).createProducer()", this.getEndpointKey());
         return new MllpTcpClientProducer(this);
     }
 
+    @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        LOG.trace("({}).createConsumer(Processor)", this.getEndpointKey());
         Consumer consumer = new MllpTcpServerConsumer(this, processor);
         configureConsumer(consumer);
         return consumer;
-    }
-
-    public boolean isSingleton() {
-        return true;
     }
 
     @ManagedAttribute(description = "Last activity time")
@@ -173,8 +157,20 @@ public class MllpEndpoint extends DefaultEndpoint {
         return lastConnectionTerminatedTicks != null ? new Date(lastConnectionTerminatedTicks) : null;
     }
 
+    public boolean hasLastConnectionActivityTicks() {
+        return lastConnectionActivityTicks != null && lastConnectionActivityTicks > 0;
+    }
+
+    public Long getLastConnectionActivityTicks() {
+        return lastConnectionActivityTicks;
+    }
+
     public void updateLastConnectionActivityTicks() {
-        lastConnectionActivityTicks = System.currentTimeMillis();
+        updateLastConnectionActivityTicks(System.currentTimeMillis());
+    }
+
+    public void updateLastConnectionActivityTicks(long epochTicks) {
+        lastConnectionActivityTicks = epochTicks;
     }
 
     public void updateLastConnectionEstablishedTicks() {
@@ -228,54 +224,6 @@ public class MllpEndpoint extends DefaultEndpoint {
             this.configuration = configuration.copy();
         }
     }
-
-    public Charset determineCharset(byte[] hl7Bytes, String msh18) {
-        Charset answer = MllpProtocolConstants.DEFAULT_CHARSET;
-
-        if (configuration.hasCharsetName()) {
-            String charsetName = configuration.getCharsetName();
-            if (Charset.isSupported(charsetName)) {
-                answer = Charset.forName(charsetName);
-            } else {
-                LOG.warn("Unsupported Character Set {} configured for component - using default character set {}", charsetName, MllpProtocolConstants.DEFAULT_CHARSET);
-            }
-        } else if (msh18 != null && !msh18.isEmpty()) {
-            if (MllpProtocolConstants.MSH18_VALUES.containsKey(msh18)) {
-                answer = MllpProtocolConstants.MSH18_VALUES.get(msh18);
-            } else {
-                LOG.warn("Unsupported Character Set {} specified for MSH-18 - using default character set {}", msh18, MllpProtocolConstants.DEFAULT_CHARSET);
-            }
-        } else {
-            String foundMsh18 = Hl7Util.findMsh18(hl7Bytes);
-            if (foundMsh18 != null && !foundMsh18.isEmpty()) {
-                if (MllpProtocolConstants.MSH18_VALUES.containsKey(foundMsh18)) {
-                    answer = MllpProtocolConstants.MSH18_VALUES.get(foundMsh18);
-                } else {
-                    LOG.warn("Unsupported Character Set {} found in MSH-18 - using default character set {}", foundMsh18, MllpProtocolConstants.DEFAULT_CHARSET);
-                }
-            } else {
-                LOG.debug("Character Set not specified and no Character Set found in MSH-18 - using default character set {}", MllpProtocolConstants.DEFAULT_CHARSET);
-            }
-        }
-
-        return answer;
-    }
-
-    public String createNewString(byte[] hl7Bytes, String msh18) {
-        if (hl7Bytes == null) {
-            return null;
-        } else if (hl7Bytes.length == 0) {
-            return "";
-        }
-
-        Charset charset = determineCharset(hl7Bytes, msh18);
-
-        LOG.debug("Creating new String using Charset {}", charset);
-
-        return new String(hl7Bytes, charset);
-    }
-
-
 
     // Pass-through configuration methods
     public void setBacklog(Integer backlog) {
@@ -343,10 +291,11 @@ public class MllpEndpoint extends DefaultEndpoint {
     }
 
     /**
-     * @deprecated this parameter will be ignored.
+     * @deprecated              this parameter will be ignored.
      *
-     * @param bufferWrites
+     * @param      bufferWrites
      */
+    @Deprecated
     public void setBufferWrites(Boolean bufferWrites) {
         configuration.setBufferWrites(bufferWrites);
     }
@@ -367,20 +316,25 @@ public class MllpEndpoint extends DefaultEndpoint {
         configuration.setCharsetName(charsetName);
     }
 
+    public void setMaxConcurrentConsumers(int maxConcurrentConsumers) {
+        configuration.setMaxConcurrentConsumers(maxConcurrentConsumers);
+    }
+
     // Utility methods for producers and consumers
 
     public boolean checkBeforeSendProperties(Exchange exchange, Socket socket, Logger log) {
+        final String logMessageFormat = "Exchange property {} = {} - {} connection";
         boolean answer = true;
 
         if (exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_BEFORE_SEND, boolean.class)) {
-            log.warn("Exchange property " + MllpConstants.MLLP_RESET_CONNECTION_BEFORE_SEND + " = "
-                + exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_BEFORE_SEND) + " - resetting connection");
-            doConnectionClose(socket, true, log);
+            log.warn(logMessageFormat, MllpConstants.MLLP_RESET_CONNECTION_BEFORE_SEND,
+                    exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_BEFORE_SEND), "resetting");
+            doConnectionClose(socket, true, null);
             answer = false;
         } else if (exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_BEFORE_SEND, boolean.class)) {
-            log.warn("Exchange property " + MllpConstants.MLLP_CLOSE_CONNECTION_BEFORE_SEND + " = "
-                + exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_BEFORE_SEND) + " - closing connection");
-            doConnectionClose(socket, false, log);
+            log.warn(logMessageFormat, MllpConstants.MLLP_CLOSE_CONNECTION_BEFORE_SEND,
+                    exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_BEFORE_SEND), "closing");
+            doConnectionClose(socket, false, null);
             answer = false;
         }
 
@@ -388,16 +342,17 @@ public class MllpEndpoint extends DefaultEndpoint {
     }
 
     public boolean checkAfterSendProperties(Exchange exchange, Socket socket, Logger log) {
+        final String logMessageFormat = "Exchange property {} = {} - {} connection";
         boolean answer = true;
 
         if (exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_AFTER_SEND, boolean.class)) {
-            log.warn("Exchange property " + MllpConstants.MLLP_RESET_CONNECTION_AFTER_SEND + " = "
-                + exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_AFTER_SEND) + " - resetting connection");
+            log.warn(logMessageFormat, MllpConstants.MLLP_RESET_CONNECTION_AFTER_SEND,
+                    exchange.getProperty(MllpConstants.MLLP_RESET_CONNECTION_AFTER_SEND), "resetting");
             doConnectionClose(socket, true, log);
             answer = false;
         } else if (exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_AFTER_SEND, boolean.class)) {
-            log.warn("Exchange property " + MllpConstants.MLLP_CLOSE_CONNECTION_AFTER_SEND + " = "
-                + exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_AFTER_SEND) + " - closing connection");
+            log.warn(logMessageFormat, MllpConstants.MLLP_CLOSE_CONNECTION_AFTER_SEND,
+                    exchange.getProperty(MllpConstants.MLLP_CLOSE_CONNECTION_AFTER_SEND), "closing");
             doConnectionClose(socket, false, log);
             answer = false;
         }
@@ -417,23 +372,29 @@ public class MllpEndpoint extends DefaultEndpoint {
             SocketAddress remoteSocketAddress = socket.getRemoteSocketAddress();
             if (!socket.isConnected()) {
                 if (log != null) {
-                    log.debug(ignoringCallLogFormat, reset ? "Reset" : "Close", "Socket is not connected", localSocketAddress, remoteSocketAddress);
+                    log.debug(ignoringCallLogFormat, reset ? "Reset" : "Close", "Socket is not connected", localSocketAddress,
+                            remoteSocketAddress);
                 }
             } else if (socket.isClosed()) {
                 if (log != null) {
-                    log.debug(ignoringCallLogFormat, reset ? "Reset" : "Close", "Socket is already closed", localSocketAddress, remoteSocketAddress);
+                    log.debug(ignoringCallLogFormat, reset ? "Reset" : "Close", "Socket is already closed", localSocketAddress,
+                            remoteSocketAddress);
                 }
             } else {
-                final String ignoringExceptionStringFormat = "Ignoring %s encountered calling %s on Socket: localAddress=%s remoteAddress=%s";
+                this.updateLastConnectionTerminatedTicks();
+                final String ignoringExceptionStringFormat
+                        = "Ignoring %s encountered calling %s on Socket: localAddress=%s remoteAddress=%s";
                 if (!socket.isInputShutdown()) {
                     if (log != null) {
-                        log.trace("Shutting down input on Socket: localAddress={} remoteAddress={}", localSocketAddress, remoteSocketAddress);
+                        log.trace("Shutting down input on Socket: localAddress={} remoteAddress={}", localSocketAddress,
+                                remoteSocketAddress);
                     }
                     try {
                         socket.shutdownInput();
                     } catch (Exception ioEx) {
                         if (log != null && log.isDebugEnabled()) {
-                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(), "shutdownInput()", localSocketAddress, remoteSocketAddress);
+                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(),
+                                    "shutdownInput()", localSocketAddress, remoteSocketAddress);
                             log.debug(logMessage, ioEx);
                         }
                     }
@@ -441,13 +402,15 @@ public class MllpEndpoint extends DefaultEndpoint {
 
                 if (!socket.isOutputShutdown()) {
                     if (log != null) {
-                        log.trace("Shutting down output on Socket: localAddress={} remoteAddress={}", localSocketAddress, remoteSocketAddress);
+                        log.trace("Shutting down output on Socket: localAddress={} remoteAddress={}", localSocketAddress,
+                                remoteSocketAddress);
                     }
                     try {
                         socket.shutdownOutput();
                     } catch (IOException ioEx) {
                         if (log != null && log.isDebugEnabled()) {
-                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(), "shutdownOutput()", localSocketAddress, remoteSocketAddress);
+                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(),
+                                    "shutdownOutput()", localSocketAddress, remoteSocketAddress);
                             log.debug(logMessage, ioEx);
                         }
                     }
@@ -457,14 +420,16 @@ public class MllpEndpoint extends DefaultEndpoint {
                     final boolean on = true;
                     final int linger = 0;
                     if (log != null) {
-                        log.trace("Setting SO_LINGER to {} on Socket: localAddress={} remoteAddress={}", localSocketAddress, remoteSocketAddress);
+                        log.trace("Setting SO_LINGER to {} on Socket: localAddress={} remoteAddress={}", linger,
+                                localSocketAddress, remoteSocketAddress);
                     }
                     try {
                         socket.setSoLinger(on, linger);
                     } catch (IOException ioEx) {
                         if (log.isDebugEnabled()) {
                             String methodString = String.format("setSoLinger(%b, %d)", on, linger);
-                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(), methodString, localSocketAddress, remoteSocketAddress);
+                            String logMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(),
+                                    methodString, localSocketAddress, remoteSocketAddress);
                             log.debug(logMessage, ioEx);
                         }
                     }
@@ -472,12 +437,14 @@ public class MllpEndpoint extends DefaultEndpoint {
 
                 try {
                     if (log != null) {
-                        log.trace("Resetting Socket: localAddress={} remoteAddress={}", localSocketAddress, remoteSocketAddress);
+                        log.trace("Resetting Socket: localAddress={} remoteAddress={}", localSocketAddress,
+                                remoteSocketAddress);
                     }
                     socket.close();
                 } catch (IOException ioEx) {
                     if (log.isDebugEnabled()) {
-                        String warningMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(), "close()", localSocketAddress, remoteSocketAddress);
+                        String warningMessage = String.format(ignoringExceptionStringFormat, ioEx.getClass().getSimpleName(),
+                                "close()", localSocketAddress, remoteSocketAddress);
                         log.debug(warningMessage, ioEx);
                     }
                 }

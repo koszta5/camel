@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -23,10 +23,9 @@ import org.slf4j.LoggerFactory;
 
 public final class TestStoredProcedure {
 
-    public static final AtomicLong BATCHFN_CALL_COUNTER = new AtomicLong(0);
+    public static final AtomicLong BATCHFN_CALL_COUNTER = new AtomicLong();
 
     private static final Logger LOG = LoggerFactory.getLogger(TestStoredProcedure.class);
-
 
     private TestStoredProcedure() {
     }
@@ -36,7 +35,6 @@ public final class TestStoredProcedure {
         ret[0] = val1 - val2;
     }
 
-
     public static void batchfn(String val1) {
         LOG.info("calling batchfn:{}", val1);
         if (val1 == null) {
@@ -45,9 +43,13 @@ public final class TestStoredProcedure {
         BATCHFN_CALL_COUNTER.incrementAndGet();
     }
 
-
     public static void niladic() {
         LOG.info("nilacid called");
     }
 
+    public static void inoutdemo(int in1, int[] inout1, int[] out1) {
+        LOG.info("calling inoutdemo: {}, {}", inout1[0], out1[0]);
+        inout1[0] = 1;
+        out1[0] = 2;
+    }
 }

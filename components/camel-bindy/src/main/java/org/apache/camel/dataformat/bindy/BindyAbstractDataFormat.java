@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -23,10 +23,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.dataformat.bindy.annotation.FormatFactories;
@@ -37,7 +37,7 @@ import org.apache.camel.dataformat.bindy.format.factories.FormatFactoryInterface
 import org.apache.camel.spi.DataFormat;
 import org.apache.camel.spi.DataFormatName;
 import org.apache.camel.spi.Registry;
-import org.apache.camel.support.ServiceSupport;
+import org.apache.camel.support.service.ServiceSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +47,8 @@ public abstract class BindyAbstractDataFormat extends ServiceSupport implements 
     private BindyAbstractFactory modelFactory;
     private Class<?> classType;
     private CamelContext camelContext;
+    private boolean unwrapSingleInstance = true;
+    private boolean allowEmptyStream;
 
     public BindyAbstractDataFormat() {
     }
@@ -71,6 +73,22 @@ public abstract class BindyAbstractDataFormat extends ServiceSupport implements 
         this.locale = locale;
     }
 
+    public boolean isUnwrapSingleInstance() {
+        return unwrapSingleInstance;
+    }
+
+    public void setUnwrapSingleInstance(boolean unwrapSingleInstance) {
+        this.unwrapSingleInstance = unwrapSingleInstance;
+    }
+
+    public boolean isAllowEmptyStream() {
+        return allowEmptyStream;
+    }
+
+    public void setAllowEmptyStream(boolean allowEmptyStream) {
+        this.allowEmptyStream = allowEmptyStream;
+    }
+
     public BindyAbstractFactory getFactory() throws Exception {
         if (modelFactory == null) {
             FormatFactory formatFactory = createFormatFactory();
@@ -81,9 +99,11 @@ public abstract class BindyAbstractDataFormat extends ServiceSupport implements 
         return modelFactory;
     }
 
-    private void registerAdditionalConverter(FormatFactory formatFactory) throws IllegalAccessException, InstantiationException {
+    private void registerAdditionalConverter(FormatFactory formatFactory)
+            throws IllegalAccessException, InstantiationException {
         Function<Class<?>, FormatFactories> g = aClass -> aClass.getAnnotation(FormatFactories.class);
-        Function<FormatFactories, List<Class<? extends FormatFactoryInterface>>> h = formatFactories -> Arrays.asList(formatFactories.value());
+        Function<FormatFactories, List<Class<? extends FormatFactoryInterface>>> h
+                = formatFactories -> Arrays.asList(formatFactories.value());
         List<Class<? extends FormatFactoryInterface>> array = Optional
                 .ofNullable(classType)
                 .map(g)
@@ -165,7 +185,7 @@ public abstract class BindyAbstractDataFormat extends ServiceSupport implements 
                 }
             }
             // if there is only 1 then dont return a list
-            if (answer.size() == 1) {
+            if (isUnwrapSingleInstance() && answer.size() == 1) {
                 return answer.get(0);
             } else {
                 return answer;

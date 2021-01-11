@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -30,13 +30,20 @@ import org.apache.camel.component.undertow.UndertowConstants;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.ws.WebSocket;
-import org.asynchttpclient.ws.WebSocketTextListener;
+import org.asynchttpclient.ws.WebSocketListener;
 import org.asynchttpclient.ws.WebSocketUpgradeHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UndertowWsProducerRouteTest extends BaseUndertowTest {
 
-    @Produce(uri = "direct:shop")
+    private static final Logger LOG = LoggerFactory.getLogger(UndertowWsProducerRouteTest.class);
+
+    @Produce("direct:shop")
     private ProducerTemplate producer;
 
     @Test
@@ -44,15 +51,15 @@ public class UndertowWsProducerRouteTest extends BaseUndertowTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         AsyncHttpClient c = new DefaultAsyncHttpClient();
-        final List<Object> received = Collections.synchronizedList(new ArrayList<Object>());
+        final List<Object> received = Collections.synchronizedList(new ArrayList<>());
 
         WebSocket websocket = c.prepareGet("ws://localhost:" + getPort() + "/shop")
-                .execute(new WebSocketUpgradeHandler.Builder().addWebSocketListener(new WebSocketTextListener() {
+                .execute(new WebSocketUpgradeHandler.Builder().addWebSocketListener(new WebSocketListener() {
 
                     @Override
-                    public void onMessage(String message) {
+                    public void onTextFrame(String message, boolean finalFragment, int rsv) {
                         received.add(message);
-                        log.info("received --> " + message);
+                        LOG.info("received --> " + message);
                         latch.countDown();
                     }
 
@@ -61,12 +68,12 @@ public class UndertowWsProducerRouteTest extends BaseUndertowTest {
                     }
 
                     @Override
-                    public void onClose(WebSocket websocket) {
+                    public void onClose(WebSocket websocket, int code, String reason) {
                     }
 
                     @Override
                     public void onError(Throwable t) {
-                        t.printStackTrace();
+                        LOG.warn("Unhandled exception: {}", t.getMessage(), t);
                     }
                 }).build()).get();
 
@@ -80,7 +87,7 @@ public class UndertowWsProducerRouteTest extends BaseUndertowTest {
         assertTrue(r instanceof String);
         assertEquals("Beer on stock at Apache Mall", r);
 
-        websocket.close();
+        websocket.sendCloseFrame();
         c.close();
     }
 

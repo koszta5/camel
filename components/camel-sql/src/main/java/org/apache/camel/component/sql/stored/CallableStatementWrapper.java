@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.component.sql.stored.template.ast.InputParameter;
+import org.apache.camel.component.sql.stored.template.ast.InParameter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.CallableStatementCallback;
 import org.springframework.jdbc.core.CallableStatementCreator;
@@ -55,7 +55,6 @@ public class CallableStatementWrapper implements StatementWrapper {
         cb.execute(this);
     }
 
-
     @Override
     public int[] executeBatch() throws SQLException {
 
@@ -64,7 +63,6 @@ public class CallableStatementWrapper implements StatementWrapper {
         }
 
         final Iterator<Map<String, ?>> params = batchItems.iterator();
-
 
         return factory.getJdbcTemplate().execute(new CallableStatementCreator() {
             @Override
@@ -87,12 +85,10 @@ public class CallableStatementWrapper implements StatementWrapper {
         });
     }
 
-
     @Override
     public Integer getUpdateCount() throws SQLException {
         return this.updateCount;
     }
-
 
     @Override
     public Object executeStatement() throws SQLException {
@@ -116,7 +112,7 @@ public class CallableStatementWrapper implements StatementWrapper {
         Map<String, Object> batchValues = new HashMap<>();
         //only IN-parameters supported by template
         for (Object param : this.batchFactory.getTemplate().getParameterList()) {
-            InputParameter inputParameter = (InputParameter) param;
+            InParameter inputParameter = (InParameter) param;
             Object paramValue = inputParameter.getValueExtractor().eval(exchange, value);
             batchValues.put(inputParameter.getName(), paramValue);
         }

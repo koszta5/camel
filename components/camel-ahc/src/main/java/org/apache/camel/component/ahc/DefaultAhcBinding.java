@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -25,25 +25,25 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import org.apache.camel.CamelExchangeException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.component.ahc.helper.AhcHelper;
 import org.apache.camel.component.file.GenericFile;
 import org.apache.camel.spi.HeaderFilterStrategy;
-import org.apache.camel.util.ExchangeHelper;
-import org.apache.camel.util.GZIPHelper;
+import org.apache.camel.support.ExchangeHelper;
+import org.apache.camel.support.GZIPHelper;
+import org.apache.camel.support.MessageHelper;
 import org.apache.camel.util.IOHelper;
-import org.apache.camel.util.MessageHelper;
 import org.apache.camel.util.ObjectHelper;
-import org.asynchttpclient.HttpResponseHeaders;
 import org.asynchttpclient.HttpResponseStatus;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.RequestBuilder;
@@ -59,6 +59,7 @@ public class DefaultAhcBinding implements AhcBinding {
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
     protected HeaderFilterStrategy httpProtocolHeaderFilterStrategy = new HttpProtocolHeaderFilterStrategy();
 
+    @Override
     public Request prepareRequest(AhcEndpoint endpoint, Exchange exchange) throws CamelExchangeException {
         if (endpoint.isBridgeEndpoint()) {
             exchange.setProperty(Exchange.SKIP_GZIP_ENCODING, Boolean.TRUE);
@@ -84,8 +85,7 @@ public class DefaultAhcBinding implements AhcBinding {
         log.trace("Setting method {}", method);
         builder.setMethod(method);
 
-        populateHeaders(builder, endpoint, exchange);
-        populateCookieHeaders(builder, endpoint, exchange, uri);
+        populateHeaders(builder, endpoint, exchange, uri);
         populateBody(builder, endpoint, exchange);
 
         return builder.build();
@@ -103,9 +103,11 @@ public class DefaultAhcBinding implements AhcBinding {
         return hasBody ? "POST" : "GET";
     }
 
-    protected void populateHeaders(RequestBuilder builder, AhcEndpoint endpoint, Exchange exchange) {
-        HeaderFilterStrategy strategy = endpoint.getHeaderFilterStrategy();
+    protected void populateHeaders(RequestBuilder builder, AhcEndpoint endpoint, Exchange exchange, URI uri)
+            throws CamelExchangeException {
+        Map<String, Object> headers = new HashMap<>();
 
+        HeaderFilterStrategy strategy = endpoint.getHeaderFilterStrategy();
         // propagate headers as HTTP headers
         for (Map.Entry<String, Object> entry : exchange.getIn().getHeaders().entrySet()) {
             String headerValue = exchange.getIn().getHeader(entry.getKey(), String.class);
@@ -113,32 +115,35 @@ public class DefaultAhcBinding implements AhcBinding {
                 if (log.isTraceEnabled()) {
                     log.trace("Adding header {} = {}", entry.getKey(), headerValue);
                 }
-                builder.addHeader(entry.getKey(), headerValue);
+
+                headers.put(entry.getKey(), headerValue);
             }
         }
-        
-        if (endpoint.isConnectionClose()) {
-            builder.addHeader("Connection", "close");
-        }
-    }
 
-    private void populateCookieHeaders(RequestBuilder builder, AhcEndpoint endpoint, Exchange exchange, URI uri) throws CamelExchangeException {
         if (endpoint.getCookieHandler() != null) {
             try {
                 Map<String, List<String>> cookieHeaders = endpoint.getCookieHandler().loadCookies(exchange, uri);
                 for (Map.Entry<String, List<String>> entry : cookieHeaders.entrySet()) {
                     String key = entry.getKey();
+                    StringJoiner joiner = new StringJoiner("; ");
                     for (String value : entry.getValue()) {
-                        if (log.isTraceEnabled()) {
-                            log.trace("Adding header {} = {}", key, value);
-                        }
-                        builder.addHeader(key, value);                        
+                        joiner.add(value);
                     }
+                    if (log.isTraceEnabled()) {
+                        log.trace("Adding header {} = {}", key, joiner.toString());
+                    }
+                    headers.put(key, joiner.toString());
                 }
             } catch (IOException e) {
                 throw new CamelExchangeException("Error loading cookies", exchange, e);
             }
         }
+
+        if (endpoint.isConnectionClose()) {
+            builder.addHeader("Connection", "close");
+        }
+
+        headers.forEach(builder::addHeader);
     }
 
     protected void populateBody(RequestBuilder builder, AhcEndpoint endpoint, Exchange exchange) throws CamelExchangeException {
@@ -149,7 +154,7 @@ public class DefaultAhcBinding implements AhcBinding {
 
         String contentType = ExchangeHelper.getContentType(exchange);
         BodyGenerator body = in.getBody(BodyGenerator.class);
-        String charset = IOHelper.getCharsetName(exchange, false);
+        String charset = ExchangeHelper.getCharsetName(exchange, false);
 
         if (body == null) {
             try {
@@ -158,7 +163,9 @@ public class DefaultAhcBinding implements AhcBinding {
                     if (contentType != null && AhcConstants.CONTENT_TYPE_JAVA_SERIALIZED_OBJECT.equals(contentType)) {
 
                         if (!endpoint.getComponent().isAllowJavaSerializedObject()) {
-                            throw new CamelExchangeException("Content-type " + AhcConstants.CONTENT_TYPE_JAVA_SERIALIZED_OBJECT + " is not allowed", exchange);
+                            throw new CamelExchangeException(
+                                    "Content-type " + AhcConstants.CONTENT_TYPE_JAVA_SERIALIZED_OBJECT + " is not allowed",
+                                    exchange);
                         }
 
                         // serialized java object
@@ -232,16 +239,16 @@ public class DefaultAhcBinding implements AhcBinding {
     }
 
     @Override
-    public void onHeadersReceived(AhcEndpoint endpoint, Exchange exchange, HttpResponseHeaders headers) throws Exception {
-        Map<String, List<String>> m = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
-        for (Entry<String, String> entry : headers.getHeaders().entries()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!m.containsKey(key)) {
-                m.put(key, new LinkedList<String>());
-                exchange.getOut().getHeaders().put(key, value);
+    public void onHeadersReceived(AhcEndpoint endpoint, Exchange exchange, HttpHeaders headers) throws Exception {
+        Map<String, List<String>> m = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (String name : headers.names()) {
+            List<String> values = headers.getAll(name);
+            if (values.size() == 1) {
+                exchange.getOut().getHeaders().put(name, values.get(0));
+            } else {
+                exchange.getOut().getHeaders().put(name, values);
             }
-            m.get(key).add(value);
+            m.put(name, values);
         }
         // handle cookies
         if (endpoint.getCookieHandler() != null) {
@@ -257,8 +264,10 @@ public class DefaultAhcBinding implements AhcBinding {
     }
 
     @Override
-    public void onComplete(AhcEndpoint endpoint, Exchange exchange, String url, ByteArrayOutputStream os, int contentLength,
-                           int statusCode, String statusText) throws Exception {
+    public void onComplete(
+            AhcEndpoint endpoint, Exchange exchange, String url, ByteArrayOutputStream os, int contentLength,
+            int statusCode, String statusText)
+            throws Exception {
         // copy from output stream to input stream
         os.flush();
         os.close();
@@ -278,7 +287,7 @@ public class DefaultAhcBinding implements AhcBinding {
 
         Object body = is;
         // if content type is a serialized java object then de-serialize it back to a Java object but only if its allowed
-        // an exception can also be transffered as java object
+        // an exception can also be transferred as java object
         if (contentType != null && contentType.equals(AhcConstants.CONTENT_TYPE_JAVA_SERIALIZED_OBJECT)) {
             if (endpoint.getComponent().isAllowJavaSerializedObject() || endpoint.isTransferException()) {
                 body = AhcHelper.deserializeJavaObjectFromStream(is);
@@ -294,14 +303,16 @@ public class DefaultAhcBinding implements AhcBinding {
                 populateResponse(exchange, body, contentLength, statusCode);
             } else {
                 // operation failed so populate exception to throw
-                throw populateHttpOperationFailedException(endpoint, exchange, url, body, contentLength, statusCode, statusText);
+                throw populateHttpOperationFailedException(endpoint, exchange, url, body, contentLength, statusCode,
+                        statusText);
             }
         }
     }
 
-    private Exception populateHttpOperationFailedException(AhcEndpoint endpoint, Exchange exchange, String url,
-                                                           Object body, int contentLength,
-                                                           int statusCode, String statusText) {
+    private Exception populateHttpOperationFailedException(
+            AhcEndpoint endpoint, Exchange exchange, String url,
+            Object body, int contentLength,
+            int statusCode, String statusText) {
         Exception answer;
 
         if (endpoint.isTransferException() && body != null && body instanceof Exception) {
@@ -334,7 +345,7 @@ public class DefaultAhcBinding implements AhcBinding {
     }
 
     private Map<String, String> extractResponseHeaders(Exchange exchange) {
-        Map<String, String> answer = new LinkedHashMap<String, String>();
+        Map<String, String> answer = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : exchange.getOut().getHeaders().entrySet()) {
             String key = entry.getKey();
             String value = exchange.getContext().getTypeConverter().convertTo(String.class, entry.getValue());

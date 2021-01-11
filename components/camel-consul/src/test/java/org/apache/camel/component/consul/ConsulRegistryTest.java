@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -22,24 +22,28 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.orbitz.consul.Consul;
 import org.apache.camel.NoSuchBeanException;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.camel.test.infra.consul.services.ConsulService;
+import org.apache.camel.test.infra.consul.services.ConsulServiceFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit test for Camel Registry implementation for Consul
  */
 public class ConsulRegistryTest implements Serializable {
+    @RegisterExtension
+    public static ConsulService consulService = ConsulServiceFactory.createService();
 
     private static final long serialVersionUID = -3482971969351609265L;
     private static ConsulRegistry registry;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsulRegistryTest.class);
 
     public class ConsulTestClass implements Serializable {
         private static final long serialVersionUID = -4815945688487114891L;
@@ -49,9 +53,9 @@ public class ConsulRegistryTest implements Serializable {
         }
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
-        registry = new ConsulRegistry.Builder("localhost").build();
+        registry = new ConsulRegistry(consulService.host(), consulService.port());
     }
 
     @Test
@@ -115,11 +119,10 @@ public class ConsulRegistryTest implements Serializable {
         ConsulTestClass consulTestClassTwo = new ConsulTestClass();
         registry.put("testClassOne", consulTestClassOne);
         registry.put("testClassTwo", consulTestClassTwo);
-        Map<String, ? extends ConsulTestClass> consulTestClassMap = registry
-                .findByTypeWithName(consulTestClassOne.getClass());
+        Map<String, ? extends ConsulTestClass> consulTestClassMap = registry.findByTypeWithName(consulTestClassOne.getClass());
         registry.remove("testClassOne");
         registry.remove("testClassTwo");
-        HashMap<String, ConsulTestClass> emptyHashMap = new HashMap<String, ConsulTestClass>();
+        HashMap<String, ConsulTestClass> emptyHashMap = new HashMap<>();
         assertNotNull(consulTestClassMap);
         assertEquals(consulTestClassMap.getClass(), emptyHashMap.getClass());
         assertEquals(2, consulTestClassMap.size());
@@ -146,7 +149,7 @@ public class ConsulRegistryTest implements Serializable {
         registry.put("classTwo", classTwo);
         Set<? extends ConsulTestClass> results = registry.findByType(classOne.getClass());
         assertNotNull(results);
-        HashSet<ConsulTestClass> hashSet = new HashSet<ConsulTestClass>();
+        HashSet<ConsulTestClass> hashSet = new HashSet<>();
         registry.remove("classOne");
         registry.remove("classTwo");
         assertEquals(results.getClass(), hashSet.getClass());
@@ -157,8 +160,8 @@ public class ConsulRegistryTest implements Serializable {
 
     }
 
-    @Test(expected = NoSuchBeanException.class)
+    @Test
     public void deleteNonExisting() {
-        registry.remove("nonExisting");
+        assertThrows(NoSuchBeanException.class, () -> registry.remove("nonExisting"));
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLEngine;
 
 import io.netty.bootstrap.Bootstrap;
@@ -34,16 +35,17 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslHandler;
-import org.apache.camel.util.jsse.SSLContextParameters;
+import org.apache.camel.support.jsse.SSLContextParameters;
 
 import static io.netty.buffer.Unpooled.wrappedBuffer;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class LumberjackUtil {
     private LumberjackUtil() {
     }
 
-    static List<Integer> sendMessages(int port, SSLContextParameters sslContextParameters) throws InterruptedException {
+    static List<Integer> sendMessages(int port, SSLContextParameters sslContextParameters, List<Integer> windows)
+            throws InterruptedException {
         NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         try {
             // This list will hold the acknowledgment response sequence numbers
@@ -81,12 +83,9 @@ final class LumberjackUtil {
                     .handler(initializer)                         //
                     .connect("127.0.0.1", port).sync().channel(); //
 
-            // Send the 2 window frames
-            TimeUnit.MILLISECONDS.sleep(100);
-            channel.writeAndFlush(readSample("io/window10"));
-            TimeUnit.MILLISECONDS.sleep(100);
-            channel.writeAndFlush(readSample("io/window15"));
-            TimeUnit.MILLISECONDS.sleep(100);
+            // send 5 frame windows, without pausing
+            windows.stream().forEach(window -> channel.writeAndFlush(readSample(String.format("io/window%s", window))));
+            TimeUnit.MILLISECONDS.sleep(500);
 
             channel.close();
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -18,7 +18,6 @@ package org.apache.camel.component.sql.stored.template;
 
 import java.io.StringReader;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.component.sql.stored.template.ast.ParseRuntimeException;
 import org.apache.camel.component.sql.stored.template.ast.Template;
 import org.apache.camel.component.sql.stored.template.generated.ParseException;
@@ -38,9 +37,7 @@ public class TemplateParser {
     public Template parseTemplate(String template) {
         try {
             SSPTParser parser = new SSPTParser(new StringReader(template), classResolver);
-            Template ret = validate(parser.parse());
-
-            return ret;
+            return validate(parser.parse());
 
         } catch (ParseException parseException) {
             throw new ParseRuntimeException(parseException);
@@ -50,6 +47,5 @@ public class TemplateParser {
     private Template validate(Template input) {
         return input;
     }
-
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,19 +16,32 @@
  */
 package org.apache.camel.component.sjms.jms;
 
-/**
- * @author jkorab
- */
-public class DestinationNameParser {
+public final class DestinationNameParser {
 
-    public boolean isTopic(String destinationName) {
+    private DestinationNameParser() {
+    }
+
+    public static boolean isTopic(String destinationName) {
         if (destinationName == null) {
             throw new IllegalArgumentException("destinationName is null");
         }
         return destinationName.startsWith("topic:");
     }
 
-    public String getShortName(String destinationName) {
+    public static boolean isReplyToTopic(String replyTo, boolean isDestinationTopic) {
+        if (replyTo == null) {
+            throw new IllegalArgumentException("replyTo is null");
+        }
+        if (replyTo.startsWith("topic:")) {
+            return true;
+        } else if (replyTo.startsWith("queue:")) {
+            return false;
+        } else {
+            return isDestinationTopic;
+        }
+    }
+
+    public static String getShortName(String destinationName) {
         if (destinationName == null) {
             throw new IllegalArgumentException("destinationName is null");
         }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,11 +16,15 @@
  */
 package org.apache.camel.component.consul;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
+
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.consul.endpoint.ConsulKeyValueActions;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConsulKeyValueTest extends ConsulTestSupport {
 
@@ -34,12 +38,8 @@ public class ConsulKeyValueTest extends ConsulTestSupport {
         mock.expectedBodiesReceived(val);
         mock.expectedHeaderReceived(ConsulConstants.CONSUL_RESULT, true);
 
-        fluentTemplate()
-            .withHeader(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
-            .withHeader(ConsulConstants.CONSUL_KEY, key)
-            .withBody(val)
-            .to("direct:kv")
-            .send();
+        fluentTemplate().withHeader(ConsulConstants.CONSUL_ACTION, ConsulKeyValueActions.PUT)
+                .withHeader(ConsulConstants.CONSUL_KEY, key).withBody(val).to("direct:kv").send();
 
         mock.assertIsSatisfied();
 
@@ -50,12 +50,10 @@ public class ConsulKeyValueTest extends ConsulTestSupport {
     }
 
     @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
+    protected RouteBuilder createRouteBuilder() {
         return new RouteBuilder() {
             public void configure() {
-                from("direct:kv")
-                    .to("consul:kv")
-                        .to("mock:kv");
+                from("direct:kv").to("consul:kv").to("mock:kv");
             }
         };
     }

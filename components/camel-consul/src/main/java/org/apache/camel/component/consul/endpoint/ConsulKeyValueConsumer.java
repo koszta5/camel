@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -17,8 +17,8 @@
 package org.apache.camel.component.consul.endpoint;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.async.ConsulResponseCallback;
@@ -85,7 +85,8 @@ public final class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValu
                 message.setHeader(ConsulConstants.CONSUL_SESSION, value.getSession().get());
             }
 
-            message.setBody(configuration.isValueAsString() ? value.getValueAsString().orNull() : value.getValue().orNull());
+            message.setBody(
+                    configuration.isValueAsString() ? value.getValueAsString().orElse(null) : value.getValue().orElse(null));
 
             try {
                 getProcessor().process(exchange);
@@ -109,9 +110,7 @@ public final class ConsulKeyValueConsumer extends AbstractConsulConsumer<KeyValu
 
         @Override
         public void onResponse(Optional<Value> value) {
-            if (value.isPresent()) {
-                onValue(value.get());
-            }
+            value.ifPresent(this::onValue);
         }
     }
 

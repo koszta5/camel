@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -16,36 +16,60 @@
  */
 package org.apache.camel.component.kafka;
 
-import java.net.URISyntaxException;
-
 import org.apache.camel.Exchange;
+import org.apache.camel.Message;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+@MockitoSettings
 public class KafkaEndpointTest {
 
-    @Test
-    public void testCreatingKafkaExchangeSetsHeaders() throws URISyntaxException {
-        KafkaEndpoint endpoint = new KafkaEndpoint("kafka:mytopic?brokers=localhost", new KafkaComponent(new DefaultCamelContext()));
+    private KafkaEndpoint endpoint;
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<String, String>("topic", 4, 56, "somekey", "");
-        Exchange exchange = endpoint.createKafkaExchange(record);
-        assertEquals("somekey", exchange.getIn().getHeader(KafkaConstants.KEY));
-        assertEquals("topic", exchange.getIn().getHeader(KafkaConstants.TOPIC));
-        assertEquals(4, exchange.getIn().getHeader(KafkaConstants.PARTITION));
-        assertEquals(56L, exchange.getIn().getHeader(KafkaConstants.OFFSET));
+    @Mock
+    private ConsumerRecord<String, String> mockRecord;
+
+    @Mock
+    private KafkaComponent mockKafkaComponent;
+
+    @BeforeEach
+    public void setup() {
+        KafkaComponent kafka = new KafkaComponent(new DefaultCamelContext());
+        kafka.init();
+        endpoint = new KafkaEndpoint("kafka:mytopic?brokers=localhost", kafka);
     }
 
     @Test
-    public void assertSingleton() throws URISyntaxException {
-        KafkaEndpoint endpoint = new KafkaEndpoint("kafka:mytopic?brokers=localhost", new KafkaComponent(new DefaultCamelContext()));
-        endpoint.getConfiguration().setBrokers("localhost");
+    public void createKafkaExchangeShouldSetHeaders() {
+
+        when(mockRecord.key()).thenReturn("somekey");
+        when(mockRecord.topic()).thenReturn("topic");
+        when(mockRecord.partition()).thenReturn(4);
+        when(mockRecord.offset()).thenReturn(56L);
+        when(mockRecord.timestamp()).thenReturn(1518026587392L);
+
+        Exchange exchange = endpoint.createKafkaExchange(mockRecord);
+        Message inMessage = exchange.getIn();
+        assertNotNull(inMessage);
+        assertEquals("somekey", inMessage.getHeader(KafkaConstants.KEY));
+        assertEquals("topic", inMessage.getHeader(KafkaConstants.TOPIC));
+        assertEquals(4, inMessage.getHeader(KafkaConstants.PARTITION));
+        assertEquals(56L, inMessage.getHeader(KafkaConstants.OFFSET));
+        assertEquals(1518026587392L, inMessage.getHeader(KafkaConstants.TIMESTAMP));
+    }
+
+    @Test
+    public void isSingletonShouldReturnTrue() {
         assertTrue(endpoint.isSingleton());
     }
 
 }
-

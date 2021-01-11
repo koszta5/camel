@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -25,7 +25,11 @@ import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.component.sjms.support.JmsTestSupport;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class QueueProducerQoSTest extends JmsTestSupport {
 
@@ -35,14 +39,16 @@ public class QueueProducerQoSTest extends JmsTestSupport {
     private static final String EXPIRED_MESSAGE_ROUTE_ID = "expiredAdvisoryRoute";
     private static final String MOCK_EXPIRED_ADVISORY = "mock:expiredAdvisory";
 
-    @EndpointInject(uri = MOCK_EXPIRED_ADVISORY)
+    @EndpointInject(MOCK_EXPIRED_ADVISORY)
     MockEndpoint mockExpiredAdvisory;
 
     @Test
     public void testInOutQueueProducerTTL() throws Exception {
+        assumeFalse(externalAmq);
         mockExpiredAdvisory.expectedMessageCount(1);
 
-        String endpoint = String.format("sjms:queue:%s?ttl=1000&exchangePattern=InOut&responseTimeOut=500", TEST_INOUT_DESTINATION_NAME);
+        String endpoint = String.format("sjms:queue:%s?timeToLive=1000&exchangePattern=InOut&requestTimeout=500",
+                TEST_INOUT_DESTINATION_NAME);
 
         try {
             template.requestBody(endpoint, "test message");
@@ -56,22 +62,23 @@ public class QueueProducerQoSTest extends JmsTestSupport {
         assertMockEndpointsSatisfied();
 
         DestinationViewMBean queue = getQueueMBean(TEST_INOUT_DESTINATION_NAME);
-        assertEquals("There were unexpected messages left in the queue: " + TEST_INOUT_DESTINATION_NAME,
-                0, queue.getQueueSize());
+        assertEquals(0, queue.getQueueSize(),
+                "There were unexpected messages left in the queue: " + TEST_INOUT_DESTINATION_NAME);
     }
 
     @Test
     public void testInOnlyQueueProducerTTL() throws Exception {
+        assumeFalse(externalAmq);
         mockExpiredAdvisory.expectedMessageCount(1);
 
-        String endpoint = String.format("sjms:queue:%s?ttl=1000", TEST_INONLY_DESTINATION_NAME);
+        String endpoint = String.format("sjms:queue:%s?timeToLive=1000", TEST_INONLY_DESTINATION_NAME);
         template.sendBody(endpoint, "test message");
 
         assertMockEndpointsSatisfied();
 
         DestinationViewMBean queue = getQueueMBean(TEST_INONLY_DESTINATION_NAME);
-        assertEquals("There were unexpected messages left in the queue: " + TEST_INONLY_DESTINATION_NAME,
-                0, queue.getQueueSize());
+        assertEquals(0, queue.getQueueSize(),
+                "There were unexpected messages left in the queue: " + TEST_INONLY_DESTINATION_NAME);
     }
 
     @Override
@@ -101,6 +108,7 @@ public class QueueProducerQoSTest extends JmsTestSupport {
             public void configure() throws Exception {
                 from("sjms:topic:ActiveMQ.Advisory.Expired.Queue.>")
                         .routeId(EXPIRED_MESSAGE_ROUTE_ID)
+                        .log("Expired message")
                         .to(MOCK_EXPIRED_ADVISORY);
             }
         };

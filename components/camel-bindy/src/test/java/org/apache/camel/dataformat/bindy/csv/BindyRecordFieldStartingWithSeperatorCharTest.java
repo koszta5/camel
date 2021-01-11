@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -25,12 +25,14 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.dataformat.bindy.annotation.CsvRecord;
 import org.apache.camel.dataformat.bindy.annotation.DataField;
-import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.Test;
+import org.apache.camel.test.junit5.CamelTestSupport;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BindyRecordFieldStartingWithSeperatorCharTest extends CamelTestSupport {
 
-    @EndpointInject(uri = "mock:result")
+    @EndpointInject("mock:result")
     private MockEndpoint mockEndPoint;
 
     @Test
@@ -61,7 +63,7 @@ public class BindyRecordFieldStartingWithSeperatorCharTest extends CamelTestSupp
         assertEquals(BigDecimal.valueOf(3), row.getNumber());
 
         row = mockEndPoint.getExchanges().get(3).getIn().getBody(BindyCsvRowFormat.class);
-        assertEquals(null, row.getFirstField());
+        assertEquals("", row.getFirstField());
         assertEquals(",val2,", row.getSecondField());
         assertEquals(BigDecimal.valueOf(4), row.getNumber());
     }
@@ -71,14 +73,14 @@ public class BindyRecordFieldStartingWithSeperatorCharTest extends CamelTestSupp
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                BindyCsvDataFormat camelDataFormat =
-                    new BindyCsvDataFormat(BindyCsvRowFormat.class);
+                BindyCsvDataFormat camelDataFormat = new BindyCsvDataFormat(BindyCsvRowFormat.class);
                 from("direct:start").unmarshal(camelDataFormat).to("mock:result");
             }
         };
     }
 
     //from https://issues.apache.org/jira/browse/CAMEL-11065
+    @SuppressWarnings("serial")
     @CsvRecord(separator = ",", quote = "'")
     public static class BindyCsvRowFormat implements Serializable {
 
@@ -115,6 +117,5 @@ public class BindyRecordFieldStartingWithSeperatorCharTest extends CamelTestSupp
             this.number = number;
         }
     }
-
 
 }
