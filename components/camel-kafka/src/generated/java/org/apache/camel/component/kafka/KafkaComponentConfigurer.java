@@ -84,6 +84,8 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "heartbeatIntervalMs": getOrCreateConfiguration(target).setHeartbeatIntervalMs(property(camelContext, java.lang.Integer.class, value)); return true;
         case "interceptorclasses":
         case "interceptorClasses": getOrCreateConfiguration(target).setInterceptorClasses(property(camelContext, java.lang.String.class, value)); return true;
+        case "kafkaclientfactory":
+        case "kafkaClientFactory": target.setKafkaClientFactory(property(camelContext, org.apache.camel.component.kafka.KafkaClientFactory.class, value)); return true;
         case "kafkamanualcommitfactory":
         case "kafkaManualCommitFactory": target.setKafkaManualCommitFactory(property(camelContext, org.apache.camel.component.kafka.KafkaManualCommitFactory.class, value)); return true;
         case "kerberosbeforereloginmintime":
@@ -203,6 +205,7 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "sslTruststorePassword": getOrCreateConfiguration(target).setSslTruststorePassword(property(camelContext, java.lang.String.class, value)); return true;
         case "ssltruststoretype":
         case "sslTruststoreType": getOrCreateConfiguration(target).setSslTruststoreType(property(camelContext, java.lang.String.class, value)); return true;
+        case "synchronous": getOrCreateConfiguration(target).setSynchronous(property(camelContext, boolean.class, value)); return true;
         case "topicispattern":
         case "topicIsPattern": getOrCreateConfiguration(target).setTopicIsPattern(property(camelContext, boolean.class, value)); return true;
         case "useglobalsslcontextparameters":
@@ -219,6 +222,11 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "workerPoolMaxSize": getOrCreateConfiguration(target).setWorkerPoolMaxSize(property(camelContext, java.lang.Integer.class, value)); return true;
         default: return false;
         }
+    }
+
+    @Override
+    public String[] getAutowiredNames() {
+        return new String[]{"kafkaClientFactory"};
     }
 
     @Override
@@ -280,6 +288,8 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "heartbeatIntervalMs": return java.lang.Integer.class;
         case "interceptorclasses":
         case "interceptorClasses": return java.lang.String.class;
+        case "kafkaclientfactory":
+        case "kafkaClientFactory": return org.apache.camel.component.kafka.KafkaClientFactory.class;
         case "kafkamanualcommitfactory":
         case "kafkaManualCommitFactory": return org.apache.camel.component.kafka.KafkaManualCommitFactory.class;
         case "kerberosbeforereloginmintime":
@@ -399,6 +409,7 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "sslTruststorePassword": return java.lang.String.class;
         case "ssltruststoretype":
         case "sslTruststoreType": return java.lang.String.class;
+        case "synchronous": return boolean.class;
         case "topicispattern":
         case "topicIsPattern": return boolean.class;
         case "useglobalsslcontextparameters":
@@ -477,6 +488,8 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "heartbeatIntervalMs": return getOrCreateConfiguration(target).getHeartbeatIntervalMs();
         case "interceptorclasses":
         case "interceptorClasses": return getOrCreateConfiguration(target).getInterceptorClasses();
+        case "kafkaclientfactory":
+        case "kafkaClientFactory": return target.getKafkaClientFactory();
         case "kafkamanualcommitfactory":
         case "kafkaManualCommitFactory": return target.getKafkaManualCommitFactory();
         case "kerberosbeforereloginmintime":
@@ -596,6 +609,7 @@ public class KafkaComponentConfigurer extends PropertyConfigurerSupport implemen
         case "sslTruststorePassword": return getOrCreateConfiguration(target).getSslTruststorePassword();
         case "ssltruststoretype":
         case "sslTruststoreType": return getOrCreateConfiguration(target).getSslTruststoreType();
+        case "synchronous": return getOrCreateConfiguration(target).isSynchronous();
         case "topicispattern":
         case "topicIsPattern": return getOrCreateConfiguration(target).isTopicIsPattern();
         case "useglobalsslcontextparameters":

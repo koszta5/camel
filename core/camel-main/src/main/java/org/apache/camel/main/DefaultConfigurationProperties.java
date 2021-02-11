@@ -19,6 +19,7 @@ package org.apache.camel.main;
 import org.apache.camel.Experimental;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.ManagementStatisticsLevel;
+import org.apache.camel.StartupSummaryLevel;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.support.PatternHelper;
 
@@ -28,6 +29,8 @@ import org.apache.camel.support.PatternHelper;
 public abstract class DefaultConfigurationProperties<T> {
 
     private String name;
+    @Metadata(defaultValue = "Default")
+    private StartupSummaryLevel startupSummaryLevel;
     private int durationMaxSeconds;
     private int durationMaxIdleSeconds;
     private int durationMaxMessages;
@@ -82,13 +85,13 @@ public abstract class DefaultConfigurationProperties<T> {
     private boolean routesCollectorEnabled = true;
     private String javaRoutesIncludePattern;
     private String javaRoutesExcludePattern;
-    private String xmlRoutes = "classpath:camel/*.xml";
-    private String xmlRouteTemplates = "classpath:camel-template/*.xml";
-    private String xmlRests = "classpath:camel-rest/*.xml";
+    private String routesIncludePattern = "classpath:camel/*.xml,classpath:camel-template/*.xml,classpath:camel-rest/*.xml";
+    private String routesExcludePattern;
     private boolean lightweight;
     // route controller
-    @Metadata(defaultValue = "INFO")
-    private LoggingLevel routeControllerRouteStartupLoggingLevel = LoggingLevel.INFO;
+    @Metadata(defaultValue = "DEBUG")
+    @Deprecated
+    private LoggingLevel routeControllerLoggingLevel;
     private boolean routeControllerSuperviseEnabled;
     private String routeControllerIncludeRoutes;
     private String routeControllerExcludeRoutes;
@@ -100,6 +103,12 @@ public abstract class DefaultConfigurationProperties<T> {
     private long routeControllerBackOffMaxAttempts;
     private double routeControllerBackOffMultiplier;
     private boolean routeControllerUnhealthyOnExhausted;
+    private String startupRecorder;
+    private int startupRecorderMaxDepth = -1;
+    private boolean startupRecorderRecording;
+    private String startupRecorderProfile = "default";
+    private long startupRecorderDuration;
+    private String startupRecorderDir;
 
     // getter and setters
     // --------------------------------------------------------------
@@ -113,6 +122,17 @@ public abstract class DefaultConfigurationProperties<T> {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    public StartupSummaryLevel getStartupSummaryLevel() {
+        return startupSummaryLevel;
+    }
+
+    /**
+     * Controls the level of information logged during startup (and shutdown) of CamelContext.
+     */
+    public void setStartupSummaryLevel(StartupSummaryLevel startupSummaryLevel) {
+        this.startupSummaryLevel = startupSummaryLevel;
     }
 
     public int getDurationMaxSeconds() {
@@ -816,9 +836,9 @@ public abstract class DefaultConfigurationProperties<T> {
 
     /**
      * Whether the routes collector is enabled or not.
-     * 
+     *
      * When enabled Camel will auto-discover routes (RouteBuilder instances from the registry and also load additional
-     * XML routes from the file system.
+     * routes from the file system).
      *
      * The routes collector is default enabled.
      */
@@ -831,8 +851,9 @@ public abstract class DefaultConfigurationProperties<T> {
     }
 
     /**
-     * Used for inclusive filtering component scanning of RouteBuilder classes with @Component annotation. The exclusive
-     * filtering takes precedence over inclusive filtering. The pattern is using Ant-path style pattern.
+     * Used for inclusive filtering RouteBuilder classes which are collected from the registry or via classpath
+     * scanning. The exclusive filtering takes precedence over inclusive filtering. The pattern is using Ant-path style
+     * pattern. Multiple patterns can be specified separated by comma.
      *
      * Multiple patterns can be specified separated by comma. For example to include all classes starting with Foo use:
      * &#42;&#42;/Foo* To include all routes form a specific package use: com/mycompany/foo/&#42; To include all routes
@@ -848,9 +869,9 @@ public abstract class DefaultConfigurationProperties<T> {
     }
 
     /**
-     * Used for exclusive filtering component scanning of RouteBuilder classes with @Component annotation. The exclusive
-     * filtering takes precedence over inclusive filtering. The pattern is using Ant-path style pattern. Multiple
-     * patterns can be specified separated by comma.
+     * Used for exclusive filtering RouteBuilder classes which are collected from the registry or via classpath
+     * scanning. The exclusive filtering takes precedence over inclusive filtering. The pattern is using Ant-path style
+     * pattern. Multiple patterns can be specified separated by comma.
      *
      * For example to exclude all classes starting with Bar use: &#42;&#42;/Bar&#42; To exclude all routes form a
      * specific package use: com/mycompany/bar/&#42; To exclude all routes form a specific package and its sub-packages
@@ -861,64 +882,34 @@ public abstract class DefaultConfigurationProperties<T> {
         this.javaRoutesExcludePattern = javaRoutesExcludePattern;
     }
 
-    public String getXmlRoutes() {
-        return xmlRoutes;
+    public String getRoutesIncludePattern() {
+        return routesIncludePattern;
     }
 
     /**
-     * Directory to scan for adding additional XML routes. You can turn this off by setting the value to false.
+     * Used for inclusive filtering of routes from directories. The exclusive filtering takes precedence over inclusive
+     * filtering. The pattern is using Ant-path style pattern.
      *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: Wildcards is supported
-     * using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;camel&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
+     * Multiple patterns can be specified separated by comma, as example, to include all the routes from a directory
+     * whose name contains foo use: &#42;&#42;/*foo*.
      */
-    public void setXmlRoutes(String xmlRoutes) {
-        this.xmlRoutes = xmlRoutes;
+    public void setRoutesIncludePattern(String routesIncludePattern) {
+        this.routesIncludePattern = routesIncludePattern;
     }
 
-    public String getXmlRouteTemplates() {
-        return xmlRouteTemplates;
+    public String getRoutesExcludePattern() {
+        return routesExcludePattern;
     }
 
     /**
-     * Directory to scan for adding additional XML route templates. You can turn this off by setting the value to false.
+     * Used for exclusive filtering of routes from directories. The exclusive filtering takes precedence over inclusive
+     * filtering. The pattern is using Ant-path style pattern.
      *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: Wildcards is supported
-     * using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;template-&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
+     * Multiple patterns can be specified separated by comma, as example, to exclude all the routes from a directory
+     * whose name contains foo use: &#42;&#42;/*foo*.
      */
-    public void setXmlRouteTemplates(String xmlRouteTemplates) {
-        this.xmlRouteTemplates = xmlRouteTemplates;
-    }
-
-    public String getXmlRests() {
-        return xmlRests;
-    }
-
-    /**
-     * Directory to scan for adding additional XML rests. You can turn this off by setting the value to false.
-     *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: Wildcards is supported
-     * using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;camel&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
-     */
-    public void setXmlRests(String xmlRests) {
-        this.xmlRests = xmlRests;
+    public void setRoutesExcludePattern(String routesExcludePattern) {
+        this.routesExcludePattern = routesExcludePattern;
     }
 
     @Experimental
@@ -936,16 +927,18 @@ public abstract class DefaultConfigurationProperties<T> {
         this.lightweight = lightweight;
     }
 
-    public LoggingLevel getRouteControllerRouteStartupLoggingLevel() {
-        return routeControllerRouteStartupLoggingLevel;
+    @Deprecated
+    public LoggingLevel getRouteControllerLoggingLevel() {
+        return routeControllerLoggingLevel;
     }
 
     /**
-     * Sets the logging level used for logging route startup activity. By default INFO level is used. You can use this
-     * to change the level for example to OFF if this kind of logging is not wanted.
+     * Sets the logging level used for logging route activity (such as starting and stopping routes). The default
+     * logging level is DEBUG.
      */
-    public void setRouteControllerRouteStartupLoggingLevel(LoggingLevel routeControllerRouteStartupLoggingLevel) {
-        this.routeControllerRouteStartupLoggingLevel = routeControllerRouteStartupLoggingLevel;
+    @Deprecated
+    public void setRouteControllerLoggingLevel(LoggingLevel routeControllerLoggingLevel) {
+        this.routeControllerLoggingLevel = routeControllerLoggingLevel;
     }
 
     public boolean isRouteControllerSuperviseEnabled() {
@@ -1094,6 +1087,92 @@ public abstract class DefaultConfigurationProperties<T> {
      */
     public void setRouteControllerUnhealthyOnExhausted(boolean routeControllerUnhealthyOnExhausted) {
         this.routeControllerUnhealthyOnExhausted = routeControllerUnhealthyOnExhausted;
+    }
+
+    public String getStartupRecorder() {
+        return startupRecorder;
+    }
+
+    /**
+     * To use startup recorder for capturing execution time during starting Camel. The recorder can be one of: false,
+     * logging, java-flight-recorder
+     *
+     * The default is false.
+     */
+    public void setStartupRecorder(String startupRecorder) {
+        this.startupRecorder = startupRecorder;
+    }
+
+    public int getStartupRecorderMaxDepth() {
+        return startupRecorderMaxDepth;
+    }
+
+    /**
+     * To filter our sub steps at a maximum depth.
+     *
+     * Use -1 for no maximum. Use 0 for no sub steps. Use 1 for max 1 sub step, and so forth.
+     *
+     * The default is -1.
+     */
+    public void setStartupRecorderMaxDepth(int startupRecorderMaxDepth) {
+        this.startupRecorderMaxDepth = startupRecorderMaxDepth;
+    }
+
+    public boolean isStartupRecorderRecording() {
+        return startupRecorderRecording;
+    }
+
+    /**
+     * To enable Java Flight Recorder to start a recording and automatic dump the recording to disk after startup is
+     * complete.
+     *
+     * This requires that camel-jfr is on the classpath, and to enable this option.
+     */
+    public void setStartupRecorderRecording(boolean startupRecorderRecording) {
+        this.startupRecorderRecording = startupRecorderRecording;
+    }
+
+    public String getStartupRecorderProfile() {
+        return startupRecorderProfile;
+    }
+
+    /**
+     * To use a specific Java Flight Recorder profile configuration, such as default or profile.
+     *
+     * The default is default.
+     */
+    public void setStartupRecorderProfile(String startupRecorderProfile) {
+        this.startupRecorderProfile = startupRecorderProfile;
+    }
+
+    public long getStartupRecorderDuration() {
+        return startupRecorderDuration;
+    }
+
+    /**
+     * How long time to run the startup recorder.
+     *
+     * Use 0 (default) to keep the recorder running until the JVM is exited. Use -1 to stop the recorder right after
+     * Camel has been started (to only focus on potential Camel startup performance bottlenecks) Use a positive value to
+     * keep recording for N seconds.
+     *
+     * When the recorder is stopped then the recording is auto saved to disk (note: save to disk can be disabled by
+     * setting startupRecorderDir to false)
+     */
+    public void setStartupRecorderDuration(long startupRecorderDuration) {
+        this.startupRecorderDuration = startupRecorderDuration;
+    }
+
+    public String getStartupRecorderDir() {
+        return startupRecorderDir;
+    }
+
+    /**
+     * Directory to store the recording. By default the user home directory will be used. Use false to turn off saving
+     * recording to disk.
+     */
+    public void setStartupRecorderDir(String startupRecorderDir) {
+        this.startupRecorderDir = startupRecorderDir;
     }
 
     // fluent builders
@@ -1681,69 +1760,22 @@ public abstract class DefaultConfigurationProperties<T> {
         return (T) this;
     }
 
-    /**
-     * Directory to scan for adding additional XML routes. You can turn this off by setting the value to false.
-     *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: By default classpath is
-     * assumed if no prefix is specified.
-     *
-     * Wildcards is supported using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;camel&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
-     */
-    public T withXmlRoutes(String xmlRoutes) {
-        this.xmlRoutes = xmlRoutes;
+    public T withRoutesIncludePattern(String routesIncludePattern) {
+        this.routesIncludePattern = routesIncludePattern;
+        return (T) this;
+    }
+
+    public T withRoutesExcludePattern(String routesExcludePattern) {
+        this.routesExcludePattern = routesExcludePattern;
         return (T) this;
     }
 
     /**
-     * Directory to scan for adding additional XML route templates. You can turn this off by setting the value to false.
-     *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: Wildcards is supported
-     * using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;template-&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
-     */
-    public T withXmlRouteTemplates(String xmlRouteTemplates) {
-        this.xmlRouteTemplates = xmlRouteTemplates;
-        return (T) this;
-    }
-
-    /**
-     * Directory to scan for adding additional XML rests. You can turn this off by setting the value to false.
-     *
-     * Files can be loaded from either classpath or file by prefixing with classpath: or file: By default classpath is
-     * assumed if no prefix is specified.
-     *
-     * Wildcards is supported using a ANT pattern style paths, such as classpath:&#42;&#42;/&#42;camel&#42;.xml
-     *
-     * Notice when using wildcards, then there is additional overhead as the classpath is scanned, where as if you
-     * specific the exact name for each XML file is faster as no classpath scanning is needed.
-     *
-     * Multiple directories can be specified and separated by comma, such as:
-     * file:/myapp/mycamel/&#42;.xml,file:/myapp/myothercamel/&#42;.xml
-     */
-    public T withXmlRests(String xmlRests) {
-        this.xmlRests = xmlRests;
-        return (T) this;
-    }
-
-    /*
-     * Configure the context to be lightweight.  This will trigger some optimizations
-     * and memory reduction options.
+     * Configure the context to be lightweight. This will trigger some optimizations and memory reduction options.
      * <p/>
-     * Lightweight context have some limitations.  At the moment, dynamic endpoint
-     * destinations are not supported.  Also, this should only be done on a JVM with
-     * a single Camel application (microservice like camel-main, camel-quarkus, camel-spring-boot).
-     * As this affects the entire JVM where Camel JARs are on the classpath.
+     * Lightweight context have some limitations. At the moment, dynamic endpoint destinations are not supported. Also,
+     * this should only be done on a JVM with a single Camel application (microservice like camel-main, camel-quarkus,
+     * camel-spring-boot). As this affects the entire JVM where Camel JARs are on the classpath.
      */
     @Experimental
     public T withLightweight(boolean lightweight) {
@@ -1752,11 +1784,11 @@ public abstract class DefaultConfigurationProperties<T> {
     }
 
     /**
-     * Sets the logging level used for logging route startup activity. By default INFO level is used. You can use this
-     * to change the level for example to OFF if this kind of logging is not wanted.
+     * Sets the logging level used for logging route activity (such as starting and stopping routes). The default
+     * logging level is DEBUG.
      */
-    public T withRouteStartupLoggingLevel(LoggingLevel routeStartupLoggingLevel) {
-        this.routeControllerRouteStartupLoggingLevel = routeStartupLoggingLevel;
+    public T withRouteControllerLoggingLevel(LoggingLevel routeControllerLoggingLevel) {
+        this.routeControllerLoggingLevel = routeControllerLoggingLevel;
         return (T) this;
     }
 
@@ -1835,6 +1867,34 @@ public abstract class DefaultConfigurationProperties<T> {
     }
 
     /**
+     * Pattern for filtering routes to be included as supervised.
+     *
+     * The pattern is matching on route id, and endpoint uri for the route. Multiple patterns can be separated by comma.
+     *
+     * For example to include all kafka routes, you can say <tt>kafka:*</tt>. And to include routes with specific route
+     * ids <tt>myRoute,myOtherRoute</tt>. The pattern supports wildcards and uses the matcher from
+     * org.apache.camel.support.PatternHelper#matchPattern.
+     */
+    public T withRouteControllerIncludeRoutes(String routeControllerIncludeRoutes) {
+        this.routeControllerIncludeRoutes = routeControllerIncludeRoutes;
+        return (T) this;
+    }
+
+    /**
+     * Pattern for filtering routes to be excluded as supervised.
+     *
+     * The pattern is matching on route id, and endpoint uri for the route. Multiple patterns can be separated by comma.
+     *
+     * For example to exclude all JMS routes, you can say <tt>jms:*</tt>. And to exclude routes with specific route ids
+     * <tt>mySpecialRoute,myOtherSpecialRoute</tt>. The pattern supports wildcards and uses the matcher from
+     * org.apache.camel.support.PatternHelper#matchPattern.
+     */
+    public T withRouteControllerExcludeRoutes(String routeControllerExcludeRoutes) {
+        this.routeControllerExcludeRoutes = routeControllerExcludeRoutes;
+        return (T) this;
+    }
+
+    /**
      * Whether to mark the route as unhealthy (down) when all restarting attempts (backoff) have failed and the route is
      * not successfully started and the route manager is giving up.
      *
@@ -1844,6 +1904,73 @@ public abstract class DefaultConfigurationProperties<T> {
      */
     public T withRouteControllerUnhealthyOnExhausted(boolean unhealthyOnExhausted) {
         this.routeControllerUnhealthyOnExhausted = unhealthyOnExhausted;
+        return (T) this;
+    }
+
+    /**
+     * To use startup recorder for capturing execution time during starting Camel. The recorder can be one of: false,
+     * logging, java-flight-recorder
+     *
+     * The default is false.
+     */
+    public T withStartupRecorder(String startupRecorder) {
+        this.startupRecorder = startupRecorder;
+        return (T) this;
+    }
+
+    /**
+     * To filter our sub steps at a maximum depth.
+     *
+     * Use -1 for no maximum. Use 0 for no sub steps. Use 1 for max 1 sub step, and so forth.
+     *
+     * The default is -1.
+     */
+    public T withStartupRecorderMaxDepth(int startupRecorderMaxDepth) {
+        this.startupRecorderMaxDepth = startupRecorderMaxDepth;
+        return (T) this;
+    }
+
+    /**
+     * To enable Java Flight Recorder to start a recording and automatic dump the recording to disk after startup is
+     * complete.
+     *
+     * This requires that camel-jfr is on the classpath, and to enable this option.
+     */
+    public T withStartupRecorderRecording(boolean startupRecorderRecording) {
+        this.startupRecorderRecording = startupRecorderRecording;
+        return (T) this;
+    }
+
+    /**
+     * To use a specific Java Flight Recorder profile configuration, such as default or profile.
+     *
+     * The default is default.
+     */
+    public T withStartupRecorderProfile(String startupRecorderProfile) {
+        this.startupRecorderProfile = startupRecorderProfile;
+        return (T) this;
+    }
+
+    /**
+     * How long time to run the startup recorder.
+     *
+     * Use 0 (default) to keep the recorder running until the JVM is exited. Use -1 to stop the recorder right after
+     * Camel has been started (to only focus on potential Camel startup performance bottlenecks) Use a positive value to
+     * keep recording for N seconds.
+     *
+     * When the recorder is stopped then the recording is auto saved to disk (note: save to disk can be disabled by
+     * setting startupRecorderDir to false)
+     */
+    public T withStartupRecorderDuration(long startupRecorderDuration) {
+        this.startupRecorderDuration = startupRecorderDuration;
+        return (T) this;
+    }
+
+    /**
+     * Directory to store the recording. By default the user home directory will be used.
+     */
+    public T withStartupRecorderDir(String startupRecorderDir) {
+        this.startupRecorderDir = startupRecorderDir;
         return (T) this;
     }
 

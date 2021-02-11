@@ -51,6 +51,8 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "deleteafterwrite":
         case "deleteAfterWrite": target.getConfiguration().setDeleteAfterWrite(property(camelContext, boolean.class, value)); return true;
         case "delimiter": target.getConfiguration().setDelimiter(property(camelContext, java.lang.String.class, value)); return true;
+        case "donefilename":
+        case "doneFileName": target.getConfiguration().setDoneFileName(property(camelContext, java.lang.String.class, value)); return true;
         case "dualstackenabled":
         case "dualstackEnabled": target.getConfiguration().setDualstackEnabled(property(camelContext, boolean.class, value)); return true;
         case "encryptionmaterials":
@@ -117,7 +119,6 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "startScheduler": target.setStartScheduler(property(camelContext, boolean.class, value)); return true;
         case "storageclass":
         case "storageClass": target.getConfiguration().setStorageClass(property(camelContext, java.lang.String.class, value)); return true;
-        case "synchronous": target.setSynchronous(property(camelContext, boolean.class, value)); return true;
         case "timeunit":
         case "timeUnit": target.setTimeUnit(property(camelContext, java.util.concurrent.TimeUnit.class, value)); return true;
         case "useawskms":
@@ -165,6 +166,8 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "deleteafterwrite":
         case "deleteAfterWrite": return boolean.class;
         case "delimiter": return java.lang.String.class;
+        case "donefilename":
+        case "doneFileName": return java.lang.String.class;
         case "dualstackenabled":
         case "dualstackEnabled": return boolean.class;
         case "encryptionmaterials":
@@ -231,7 +234,6 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "startScheduler": return boolean.class;
         case "storageclass":
         case "storageClass": return java.lang.String.class;
-        case "synchronous": return boolean.class;
         case "timeunit":
         case "timeUnit": return java.util.concurrent.TimeUnit.class;
         case "useawskms":
@@ -280,6 +282,8 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "deleteafterwrite":
         case "deleteAfterWrite": return target.getConfiguration().isDeleteAfterWrite();
         case "delimiter": return target.getConfiguration().getDelimiter();
+        case "donefilename":
+        case "doneFileName": return target.getConfiguration().getDoneFileName();
         case "dualstackenabled":
         case "dualstackEnabled": return target.getConfiguration().isDualstackEnabled();
         case "encryptionmaterials":
@@ -346,7 +350,6 @@ public class S3EndpointConfigurer extends PropertyConfigurerSupport implements G
         case "startScheduler": return target.isStartScheduler();
         case "storageclass":
         case "storageClass": return target.getConfiguration().getStorageClass();
-        case "synchronous": return target.isSynchronous();
         case "timeunit":
         case "timeUnit": return target.getTimeUnit();
         case "useawskms":

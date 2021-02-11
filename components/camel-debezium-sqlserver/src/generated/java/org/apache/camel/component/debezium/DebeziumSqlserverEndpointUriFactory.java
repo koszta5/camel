@@ -23,7 +23,6 @@ public class DebeziumSqlserverEndpointUriFactory extends org.apache.camel.suppor
         Set<String> props = new HashSet<>(69);
         props.add("maxBatchSize");
         props.add("internalKeyConverter");
-        props.add("synchronous");
         props.add("snapshotDelayMs");
         props.add("snapshotIsolationMode");
         props.add("offsetStorageTopic");
@@ -40,6 +39,7 @@ public class DebeziumSqlserverEndpointUriFactory extends org.apache.camel.suppor
         props.add("skippedOperations");
         props.add("sourceStructVersion");
         props.add("databaseServerTimezone");
+        props.add("binaryHandlingMode");
         props.add("databaseHostname");
         props.add("eventProcessingFailureHandlingMode");
         props.add("offsetCommitTimeoutMs");

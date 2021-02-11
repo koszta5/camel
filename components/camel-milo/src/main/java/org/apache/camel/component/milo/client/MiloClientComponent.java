@@ -16,57 +16,34 @@
  */
 package org.apache.camel.component.milo.client;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.camel.Endpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.annotations.Component;
 import org.apache.camel.support.DefaultComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Component("milo-client")
 public class MiloClientComponent extends DefaultComponent {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MiloClientComponent.class);
-
-    private final Map<String, MiloClientConnection> cache = new HashMap<>();
-    private final Multimap<String, MiloClientEndpoint> connectionMap = HashMultimap.create();
-
     @Metadata
     private MiloClientConfiguration configuration = new MiloClientConfiguration();
+
+    @Metadata(autowired = true, label = "client", description = "Instance for managing client connections")
+    private MiloClientConnectionManager miloClientConnectionManager = new MiloClientCachingConnectionManager();
 
     @Override
     protected Endpoint createEndpoint(final String uri, final String remaining, final Map<String, Object> parameters)
             throws Exception {
+
         final MiloClientConfiguration configuration = new MiloClientConfiguration(this.configuration);
         configuration.setEndpointUri(remaining);
 
-        Endpoint endpoint = doCreateEndpoint(uri, configuration, parameters);
-        return endpoint;
-    }
-
-    private synchronized MiloClientEndpoint doCreateEndpoint(
-            final String uri, final MiloClientConfiguration configuration, final Map<String, Object> parameters)
-            throws Exception {
-        final MiloClientEndpoint endpoint = new MiloClientEndpoint(uri, this, configuration.getEndpointUri());
+        final MiloClientEndpoint endpoint
+                = new MiloClientEndpoint(uri, this, configuration.getEndpointUri(), miloClientConnectionManager);
         endpoint.setConfiguration(configuration);
         setProperties(endpoint, parameters);
 
-        final String cacheId = configuration.toCacheId();
-        MiloClientConnection connection = this.cache.get(cacheId);
-        if (connection == null) {
-            LOG.debug("Cache miss - creating new connection instance: {}", cacheId);
-            connection = new MiloClientConnection(configuration);
-            this.cache.put(cacheId, connection);
-        }
-
-        // register connection with endpoint
-        this.connectionMap.put(cacheId, endpoint);
-        endpoint.setConnection(connection);
         return endpoint;
     }
 
@@ -109,31 +86,11 @@ public class MiloClientComponent extends DefaultComponent {
         this.configuration.setRequestTimeout(reconnectTimeout);
     }
 
-    public synchronized void disposed(final MiloClientEndpoint endpoint) {
+    public MiloClientConnectionManager getMiloClientConnectionManager() {
+        return miloClientConnectionManager;
+    }
 
-        final MiloClientConnection connection = endpoint.getConnection();
-
-        // unregister usage of connection
-
-        this.connectionMap.remove(connection.getConnectionId(), endpoint);
-
-        // test if this was the last endpoint using this connection
-
-        if (!this.connectionMap.containsKey(connection.getConnectionId())) {
-
-            // this was the last endpoint using the connection ...
-
-            // ... remove from the cache
-
-            this.cache.remove(connection.getConnectionId());
-
-            // ... and close
-
-            try {
-                connection.close();
-            } catch (final Exception e) {
-                LOG.warn("Failed to close connection", e);
-            }
-        }
+    public void setMiloClientConnectionManager(MiloClientConnectionManager miloClientConnectionManager) {
+        this.miloClientConnectionManager = miloClientConnectionManager;
     }
 }

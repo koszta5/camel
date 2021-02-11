@@ -70,11 +70,10 @@ public class KafkaProducer extends DefaultAsyncProducer {
         Properties props = endpoint.getConfiguration().createProducerProperties();
         endpoint.updateClassProperties(props);
 
-        String brokers = endpoint.getConfiguration().getBrokers();
-        if (brokers == null) {
-            throw new IllegalArgumentException("URL to the Kafka brokers must be configured with the brokers option.");
+        String brokers = endpoint.getComponent().getKafkaClientFactory().getBrokers(endpoint.getConfiguration());
+        if (brokers != null) {
+            props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         }
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
 
         return props;
     }
@@ -112,7 +111,7 @@ public class KafkaProducer extends DefaultAsyncProducer {
                 Thread.currentThread()
                         .setContextClassLoader(org.apache.kafka.clients.producer.KafkaProducer.class.getClassLoader());
                 LOG.trace("Creating KafkaProducer");
-                kafkaProducer = new org.apache.kafka.clients.producer.KafkaProducer(props);
+                kafkaProducer = endpoint.getComponent().getKafkaClientFactory().getProducer(props);
                 closeKafkaProducer = true;
             } finally {
                 Thread.currentThread().setContextClassLoader(threadClassLoader);
@@ -121,7 +120,7 @@ public class KafkaProducer extends DefaultAsyncProducer {
         }
 
         // if we are in asynchronous mode we need a worker pool
-        if (!endpoint.isSynchronous() && workerPool == null) {
+        if (!endpoint.getConfiguration().isSynchronous() && workerPool == null) {
             workerPool = endpoint.createProducerExecutor();
             // we create a thread pool so we should also shut it down
             shutdownWorkerPool = true;

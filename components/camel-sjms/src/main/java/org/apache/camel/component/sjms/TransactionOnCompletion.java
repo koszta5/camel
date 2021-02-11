@@ -50,7 +50,7 @@ class TransactionOnCompletion extends SynchronizationAdapter {
             } else {
                 commitIfNeeded(session, message);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // ignore
         } finally {
             closeSession(session);
@@ -59,6 +59,10 @@ class TransactionOnCompletion extends SynchronizationAdapter {
 
     @Override
     public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+
         TransactionOnCompletion that = (TransactionOnCompletion) o;
         return session == that.session && message == that.message;
     }

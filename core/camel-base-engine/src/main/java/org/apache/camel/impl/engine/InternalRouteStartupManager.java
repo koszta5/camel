@@ -32,6 +32,7 @@ import org.apache.camel.MultipleConsumersSupport;
 import org.apache.camel.Route;
 import org.apache.camel.ServiceStatus;
 import org.apache.camel.StartupListener;
+import org.apache.camel.StartupStep;
 import org.apache.camel.StatefulService;
 import org.apache.camel.SuspendableService;
 import org.apache.camel.spi.CamelLogger;
@@ -46,7 +47,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Internal route startup manager used by {@link AbstractCamelContext} to safely start internal route services during
  * starting routes.
- *
+ * <p>
  * This code has been refactored out of {@link AbstractCamelContext} to its own class.
  */
 class InternalRouteStartupManager {
@@ -66,6 +67,37 @@ class InternalRouteStartupManager {
      */
     public Route getSetupRoute() {
         return setupRoute.get();
+    }
+
+    /**
+     * Initializes the routes
+     *
+     * @param  routeServices the routes to initialize
+     * @throws Exception     is thrown if error initializing routes
+     */
+    protected void doInitRoutes(Map<String, RouteService> routeServices)
+            throws Exception {
+
+        abstractCamelContext.setStartingRoutes(true);
+        try {
+            for (RouteService routeService : routeServices.values()) {
+                StartupStep step = abstractCamelContext.getStartupStepRecorder().beginStep(Route.class, routeService.getId(),
+                        "Init Route");
+                try {
+                    LOG.debug("Initializing route id: {}", routeService.getId());
+                    setupRoute.set(routeService.getRoute());
+                    // initializing route is called doSetup as we do not want to change the service state on the RouteService
+                    // so it can remain as stopped, when Camel is booting as this was the previous behavior - otherwise its state
+                    // would be initialized
+                    routeService.setUp();
+                } finally {
+                    setupRoute.remove();
+                    abstractCamelContext.getStartupStepRecorder().endStep(step);
+                }
+            }
+        } finally {
+            abstractCamelContext.setStartingRoutes(false);
+        }
     }
 
     /**
@@ -199,7 +231,7 @@ class InternalRouteStartupManager {
     }
 
     /**
-     * @see #safelyStartRouteServices(boolean,boolean,boolean,boolean,Collection)
+     * @see #safelyStartRouteServices(boolean, boolean, boolean, boolean, Collection)
      */
     protected synchronized void safelyStartRouteServices(
             boolean forceAutoStart, boolean checkClash, boolean startConsumer, boolean resumeConsumer, boolean addingRoutes,
@@ -264,12 +296,17 @@ class InternalRouteStartupManager {
             // will then be prepared in time before we start inputs which will
             // consume messages to be routed
             RouteService routeService = entry.getValue().getRouteService();
+            StartupStep step = abstractCamelContext.getStartupStepRecorder().beginStep(Route.class, routeService.getId(),
+                    "Warump Route");
             try {
                 LOG.debug("Warming up route id: {} having autoStartup={}", routeService.getId(), autoStartup);
                 setupRoute.set(routeService.getRoute());
+                // ensure we setup before warmup
+                routeService.setUp();
                 routeService.warmUp();
             } finally {
                 setupRoute.remove();
+                abstractCamelContext.getStartupStepRecorder().endStep(step);
             }
         }
     }
@@ -283,7 +320,7 @@ class InternalRouteStartupManager {
     }
 
     private LoggingLevel getRouteLoggerLogLevel() {
-        return abstractCamelContext.getRouteController().getRouteStartupLoggingLevel();
+        return abstractCamelContext.getRouteController().getLoggingLevel();
     }
 
     private void doStartOrResumeRouteConsumers(
@@ -306,20 +343,22 @@ class InternalRouteStartupManager {
                 continue;
             }
 
-            // start the service
-            for (Consumer consumer : routeService.getInputs().values()) {
+            StartupStep step = abstractCamelContext.getStartupStepRecorder().beginStep(Route.class, route.getRouteId(),
+                    "Start Route");
+
+            // do some preparation before starting the consumer on the route
+            Consumer consumer = routeService.getInput();
+            if (consumer != null) {
                 Endpoint endpoint = consumer.getEndpoint();
 
-                // check multiple consumer violation, with the other routes to
-                // be started
+                // check multiple consumer violation, with the other routes to be started
                 if (!doCheckMultipleConsumerSupportClash(endpoint, routeInputs)) {
                     throw new FailedToStartRouteException(
                             routeService.getId(), "Multiple consumers for the same endpoint is not allowed: " + endpoint);
                 }
 
                 // check for multiple consumer violations with existing routes
-                // which
-                // have already been started, or is currently starting
+                // which have already been started, or is currently starting
                 List<Endpoint> existingEndpoints = new ArrayList<>();
                 for (Route existingRoute : abstractCamelContext.getRoutes()) {
                     if (route.getId().equals(existingRoute.getId())) {
@@ -404,6 +443,8 @@ class InternalRouteStartupManager {
                     throw e;
                 }
             }
+
+            abstractCamelContext.getStartupStepRecorder().endStep(step);
         }
     }
 

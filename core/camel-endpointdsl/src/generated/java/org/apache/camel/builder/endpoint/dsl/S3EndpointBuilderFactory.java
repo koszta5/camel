@@ -458,6 +458,20 @@ public interface S3EndpointBuilderFactory {
             return this;
         }
         /**
+         * If provided, Camel will only consume files if a done file exists.
+         * 
+         * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
+         * 
+         * Group: consumer
+         * 
+         * @param doneFileName the value to set
+         * @return the dsl builder
+         */
+        default S3EndpointConsumerBuilder doneFileName(String doneFileName) {
+            doSetProperty("doneFileName", doneFileName);
+            return this;
+        }
+        /**
          * To get the object from the bucket with the given file name.
          * 
          * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
@@ -1528,40 +1542,6 @@ public interface S3EndpointBuilderFactory {
             doSetProperty("payloadSigningEnabled", payloadSigningEnabled);
             return this;
         }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointConsumerBuilder synchronous(
-                boolean synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
-         * type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointConsumerBuilder synchronous(String synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
     }
 
     /**
@@ -2420,40 +2400,6 @@ public interface S3EndpointBuilderFactory {
             doSetProperty("payloadSigningEnabled", payloadSigningEnabled);
             return this;
         }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointProducerBuilder synchronous(
-                boolean synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
-         * type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointProducerBuilder synchronous(String synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
     }
 
     /**
@@ -3035,39 +2981,6 @@ public interface S3EndpointBuilderFactory {
             doSetProperty("payloadSigningEnabled", payloadSigningEnabled);
             return this;
         }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointBuilder synchronous(boolean synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
-        /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
-         * 
-         * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
-         * type.
-         * 
-         * Default: false
-         * Group: advanced
-         * 
-         * @param synchronous the value to set
-         * @return the dsl builder
-         */
-        default AdvancedS3EndpointBuilder synchronous(String synchronous) {
-            doSetProperty("synchronous", synchronous);
-            return this;
-        }
     }
 
     /**
@@ -3110,6 +3023,7 @@ public interface S3EndpointBuilderFactory {
          * @param path //bucketNameOrArn
          * @return the dsl builder
          */
+        @Deprecated
         default S3EndpointBuilder awsS3(String path) {
             return S3EndpointBuilderFactory.endpointBuilder("aws-s3", path);
         }
@@ -3131,10 +3045,12 @@ public interface S3EndpointBuilderFactory {
          * @param path //bucketNameOrArn
          * @return the dsl builder
          */
+        @Deprecated
         default S3EndpointBuilder awsS3(String componentName, String path) {
             return S3EndpointBuilderFactory.endpointBuilder(componentName, path);
         }
     }
+    @Deprecated
     static S3EndpointBuilder endpointBuilder(String componentName, String path) {
         class S3EndpointBuilderImpl extends AbstractEndpointBuilder implements S3EndpointBuilder, AdvancedS3EndpointBuilder {
             public S3EndpointBuilderImpl(String path) {

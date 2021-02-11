@@ -91,7 +91,7 @@ with the following path and query parameters:
 |===
 
 
-=== Query Parameters (16 parameters):
+=== Query Parameters (15 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
@@ -110,7 +110,6 @@ with the following path and query parameters:
 | *region* (producer) | The region in which DDB client needs to work |  | String
 | *trustAllCertificates* (producer) | If we want to trust all certificates in case of overriding the endpoint | false | boolean
 | *writeCapacity* (producer) | The provisioned throughput to reserved for writing resources to your table |  | Long
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 | *accessKey* (security) | Amazon AWS Access Key |  | String
 | *secretKey* (security) | Amazon AWS Secret Key |  | String
 |===
@@ -344,12 +343,6 @@ Registry.
 - Scan
 - UpdateItem
 - UpdateTable
-
-== Automatic detection of DynamoDbClient client in registry
-
-The component is capable of detecting the presence of an DynamoDbClient bean into the registry.
-If it's the only instance of that type it will be used as client and you won't have to define it as uri parameter.
-This may be really useful for smarter configuration of the endpoint.
 
 == Dependencies
 

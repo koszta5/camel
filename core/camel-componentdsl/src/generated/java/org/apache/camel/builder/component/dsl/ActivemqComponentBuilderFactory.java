@@ -257,6 +257,30 @@ public interface ActivemqComponentBuilderFactory {
             return this;
         }
         /**
+         * Consumer priorities allow you to ensure that high priority consumers
+         * receive messages while they are active. Normally, active consumers
+         * connected to a queue receive messages from it in a round-robin
+         * fashion. When consumer priorities are in use, messages are delivered
+         * round-robin if multiple active consumers exist with the same high
+         * priority. Messages will only going to lower priority consumers when
+         * the high priority consumers do not have credit available to consume
+         * the message, or those high priority consumers have declined to accept
+         * the message (for instance because it does not meet the criteria of
+         * any selectors associated with the consumer).
+         * 
+         * The option is a: &lt;code&gt;int&lt;/code&gt; type.
+         * 
+         * Group: consumer
+         * 
+         * @param artemisConsumerPriority the value to set
+         * @return the dsl builder
+         */
+        default ActivemqComponentBuilder artemisConsumerPriority(
+                int artemisConsumerPriority) {
+            doSetProperty("artemisConsumerPriority", artemisConsumerPriority);
+            return this;
+        }
+        /**
          * Whether the JmsConsumer processes the Exchange asynchronously. If
          * enabled then the JmsConsumer may pickup the next message from the JMS
          * queue, while the previous message is being processed asynchronously
@@ -1649,6 +1673,21 @@ public interface ActivemqComponentBuilderFactory {
             return this;
         }
         /**
+         * Sets whether synchronous processing should be strictly used.
+         * 
+         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
+         * 
+         * Default: false
+         * Group: advanced
+         * 
+         * @param synchronous the value to set
+         * @return the dsl builder
+         */
+        default ActivemqComponentBuilder synchronous(boolean synchronous) {
+            doSetProperty("synchronous", synchronous);
+            return this;
+        }
+        /**
          * If enabled and you are using Request Reply messaging (InOut) and an
          * Exchange failed on the consumer side, then the caused Exception will
          * be send back in response as a javax.jms.ObjectMessage. If the client
@@ -2005,6 +2044,7 @@ public interface ActivemqComponentBuilderFactory {
             case "usePooledConnection": ((ActiveMQComponent) component).setUsePooledConnection((boolean) value); return true;
             case "useSingleConnection": ((ActiveMQComponent) component).setUseSingleConnection((boolean) value); return true;
             case "acknowledgementModeName": getOrCreateConfiguration((ActiveMQComponent) component).setAcknowledgementModeName((java.lang.String) value); return true;
+            case "artemisConsumerPriority": getOrCreateConfiguration((ActiveMQComponent) component).setArtemisConsumerPriority((int) value); return true;
             case "asyncConsumer": getOrCreateConfiguration((ActiveMQComponent) component).setAsyncConsumer((boolean) value); return true;
             case "autoStartup": getOrCreateConfiguration((ActiveMQComponent) component).setAutoStartup((boolean) value); return true;
             case "cacheLevel": getOrCreateConfiguration((ActiveMQComponent) component).setCacheLevel((int) value); return true;
@@ -2077,6 +2117,7 @@ public interface ActivemqComponentBuilderFactory {
             case "receiveTimeout": getOrCreateConfiguration((ActiveMQComponent) component).setReceiveTimeout((long) value); return true;
             case "recoveryInterval": getOrCreateConfiguration((ActiveMQComponent) component).setRecoveryInterval((long) value); return true;
             case "requestTimeoutCheckerInterval": getOrCreateConfiguration((ActiveMQComponent) component).setRequestTimeoutCheckerInterval((long) value); return true;
+            case "synchronous": getOrCreateConfiguration((ActiveMQComponent) component).setSynchronous((boolean) value); return true;
             case "transferException": getOrCreateConfiguration((ActiveMQComponent) component).setTransferException((boolean) value); return true;
             case "transferExchange": getOrCreateConfiguration((ActiveMQComponent) component).setTransferExchange((boolean) value); return true;
             case "trustAllPackages": ((ActiveMQComponent) component).setTrustAllPackages((boolean) value); return true;

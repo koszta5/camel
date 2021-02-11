@@ -56,6 +56,7 @@ import org.apache.camel.ServiceStatus;
 import org.apache.camel.ShutdownRoute;
 import org.apache.camel.ShutdownRunningTask;
 import org.apache.camel.StartupListener;
+import org.apache.camel.StartupSummaryLevel;
 import org.apache.camel.TypeConverter;
 import org.apache.camel.ValueHolder;
 import org.apache.camel.catalog.RuntimeCamelCatalog;
@@ -119,8 +120,10 @@ import org.apache.camel.spi.RouteController;
 import org.apache.camel.spi.RouteFactory;
 import org.apache.camel.spi.RoutePolicyFactory;
 import org.apache.camel.spi.RouteStartupOrder;
+import org.apache.camel.spi.RoutesLoader;
 import org.apache.camel.spi.RuntimeEndpointRegistry;
 import org.apache.camel.spi.ShutdownStrategy;
+import org.apache.camel.spi.StartupStepRecorder;
 import org.apache.camel.spi.StreamCachingStrategy;
 import org.apache.camel.spi.SupervisingRouteController;
 import org.apache.camel.spi.Tracer;
@@ -189,6 +192,7 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
     private final boolean logExhaustedMessageBody;
     private final String version;
     private Date startDate;
+    private StartupSummaryLevel startupSummaryLevel;
 
     LightweightRuntimeCamelContext(CamelContext reference, CamelContext context) {
         this.reference = reference;
@@ -230,6 +234,7 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
         allowUseOriginalMessage = context.isAllowUseOriginalMessage();
         logExhaustedMessageBody = context.isLogExhaustedMessageBody();
         version = context.getVersion();
+        startupSummaryLevel = context.getStartupSummaryLevel();
     }
 
     /**
@@ -1214,6 +1219,16 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
     }
 
     @Override
+    public void setStartupSummaryLevel(StartupSummaryLevel startupSummaryLevel) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StartupSummaryLevel getStartupSummaryLevel() {
+        return startupSummaryLevel;
+    }
+
+    @Override
     public Endpoint getPrototypeEndpoint(String uri) {
         throw new UnsupportedOperationException();
     }
@@ -1395,6 +1410,11 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
 
     @Override
     public void setBootstrapFactoryFinder(FactoryFinder factoryFinder) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FactoryFinder getBootstrapFactoryFinder(String path) {
         throw new UnsupportedOperationException();
     }
 
@@ -1737,6 +1757,16 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
     }
 
     @Override
+    public void setRoutesLoader(RoutesLoader routesLoader) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RoutesLoader getRoutesLoader() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void registerEndpointCallback(EndpointStrategy strategy) {
         throw new UnsupportedOperationException();
     }
@@ -1851,13 +1881,18 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
     public RouteController getInternalRouteController() {
         return new RouteController() {
             @Override
-            public LoggingLevel getRouteStartupLoggingLevel() {
+            public LoggingLevel getLoggingLevel() {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public void setRouteStartupLoggingLevel(LoggingLevel loggingLevel) {
+            public void setLoggingLevel(LoggingLevel loggingLevel) {
                 throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean isSupervising() {
+                return false;
             }
 
             @Override
@@ -1960,6 +1995,16 @@ public class LightweightRuntimeCamelContext implements ExtendedCamelContext, Cat
 
     @Override
     public EndpointUriFactory getEndpointUriFactory(String scheme) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public StartupStepRecorder getStartupStepRecorder() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setStartupStepRecorder(StartupStepRecorder startupStepRecorder) {
         throw new UnsupportedOperationException();
     }
 

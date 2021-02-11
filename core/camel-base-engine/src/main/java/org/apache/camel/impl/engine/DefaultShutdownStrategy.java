@@ -38,12 +38,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Consumer;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Route;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.Service;
 import org.apache.camel.ShutdownRoute;
 import org.apache.camel.ShutdownRunningTask;
 import org.apache.camel.Suspendable;
+import org.apache.camel.spi.CamelLogger;
 import org.apache.camel.spi.InflightRepository;
 import org.apache.camel.spi.RouteStartupOrder;
 import org.apache.camel.spi.ShutdownAware;
@@ -114,6 +116,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownStrategy, CamelContextAware {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultShutdownStrategy.class);
+    private final CamelLogger logger = new CamelLogger(LOG, LoggingLevel.DEBUG);
 
     private CamelContext camelContext;
     private ExecutorService executor;
@@ -195,12 +198,16 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
         List<RouteStartupOrder> routesOrdered = new ArrayList<>(routes);
         routesOrdered.sort(comparator);
 
-        if (suspendOnly) {
-            LOG.info("Starting to graceful suspend {} routes (timeout {} {})", routesOrdered.size(), timeout,
-                    timeUnit.toString().toLowerCase(Locale.ENGLISH));
-        } else {
-            LOG.info("Starting to graceful shutdown {} routes (timeout {} {})", routesOrdered.size(), timeout,
-                    timeUnit.toString().toLowerCase(Locale.ENGLISH));
+        if (logger.shouldLog()) {
+            if (suspendOnly) {
+                String msg = String.format("Starting to graceful suspend %s routes (timeout %s %s)", routesOrdered.size(),
+                        timeout, timeUnit.toString().toLowerCase(Locale.ENGLISH));
+                logger.log(msg);
+            } else {
+                String msg = String.format("Starting to graceful shutdown %s routes (timeout %s %s)", routesOrdered.size(),
+                        timeout, timeUnit.toString().toLowerCase(Locale.ENGLISH));
+                logger.log(msg);
+            }
         }
 
         // use another thread to perform the shutdowns so we can support timeout
@@ -265,8 +272,10 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
             currentShutdownTaskFuture = null;
         }
 
-        LOG.info("Graceful shutdown of {} routes completed in {}", routesOrdered.size(),
-                TimeUtils.printDuration(watch.taken()));
+        if (logger.shouldLog()) {
+            logger.log(String.format("Graceful shutdown of %s routes completed in %s", routesOrdered.size(),
+                    TimeUtils.printDuration(watch.taken())));
+        }
         return true;
     }
 
@@ -344,6 +353,16 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
     }
 
     @Override
+    public LoggingLevel getLoggingLevel() {
+        return logger.getLevel();
+    }
+
+    @Override
+    public void setLoggingLevel(LoggingLevel loggingLevel) {
+        this.logger.setLevel(loggingLevel);
+    }
+
+    @Override
     public CamelContext getCamelContext() {
         return camelContext;
     }
@@ -375,9 +394,10 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
                 order.getRoute().setShutdownRunningTask(ShutdownRunningTask.CompleteCurrentTaskOnly);
             }
 
-            for (Consumer consumer : order.getInputs()) {
-                shutdownNow(order.getRoute().getId(), consumer);
-            }
+            order.getRoute().getProperties().put("forcedShutdown", true);
+
+            // shutdown the route consumer
+            shutdownNow(order.getRoute().getId(), order.getInput());
         }
     }
 
@@ -574,52 +594,53 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
                             order.getRoute().getId(), shutdownRoute, shutdownRunningTask);
                 }
 
-                for (Consumer consumer : order.getInputs()) {
+                Consumer consumer = order.getInput();
+                boolean suspend = false;
 
-                    boolean suspend = false;
+                // assume we should shutdown if we are not deferred
+                boolean shutdown = shutdownRoute != ShutdownRoute.Defer;
 
-                    // assume we should shutdown if we are not deferred
-                    boolean shutdown = shutdownRoute != ShutdownRoute.Defer;
+                if (shutdown) {
+                    // if we are to shutdown then check whether we can suspend instead as its a more
+                    // gentle way to graceful shutdown
 
-                    if (shutdown) {
-                        // if we are to shutdown then check whether we can suspend instead as its a more
-                        // gentle way to graceful shutdown
-
-                        // some consumers do not support shutting down so let them decide
-                        // if a consumer is suspendable then prefer to use that and then shutdown later
-                        if (consumer instanceof ShutdownAware) {
-                            shutdown = !((ShutdownAware) consumer).deferShutdown(shutdownRunningTask);
-                        }
-                        if (shutdown && consumer instanceof Suspendable) {
-                            // we prefer to suspend over shutdown
-                            suspend = true;
-                        }
+                    // some consumers do not support shutting down so let them decide
+                    // if a consumer is suspendable then prefer to use that and then shutdown later
+                    if (consumer instanceof ShutdownAware) {
+                        shutdown = !((ShutdownAware) consumer).deferShutdown(shutdownRunningTask);
                     }
-
-                    // log at info level when a route has been shutdown (otherwise log at debug level to not be too noisy)
-                    if (suspend) {
-                        // only suspend it and then later shutdown it
-                        suspendNow(order.getRoute().getId(), consumer);
-                        // add it to the deferred list so the route will be shutdown later
-                        deferredConsumers.add(new ShutdownDeferredConsumer(order.getRoute(), consumer));
-                        // use basic endpoint uri to not log verbose details or potential sensitive data
-                        String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
-                        uri = URISupport.sanitizeUri(uri);
-                        LOG.debug("Route: {} suspended and shutdown deferred, was consuming from: {}", order.getRoute().getId(),
-                                uri);
-                    } else if (shutdown) {
-                        shutdownNow(order.getRoute().getId(), consumer);
-                        // use basic endpoint uri to not log verbose details or potential sensitive data
-                        String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
-                        uri = URISupport.sanitizeUri(uri);
-                        LOG.info("Route: {} shutdown complete, was consuming from: {}", order.getRoute().getId(), uri);
-                    } else {
-                        // we will stop it later, but for now it must run to be able to help all inflight messages
-                        // be safely completed
-                        deferredConsumers.add(new ShutdownDeferredConsumer(order.getRoute(), consumer));
-                        LOG.debug("Route: " + order.getRoute().getId()
-                                  + (suspendOnly ? " shutdown deferred." : " suspension deferred."));
+                    if (shutdown && consumer instanceof Suspendable) {
+                        // we prefer to suspend over shutdown
+                        suspend = true;
                     }
+                }
+
+                // log at info level when a route has been shutdown (otherwise log at debug level to not be too noisy)
+                if (suspend) {
+                    // only suspend it and then later shutdown it
+                    suspendNow(order.getRoute().getId(), consumer);
+                    // add it to the deferred list so the route will be shutdown later
+                    deferredConsumers.add(new ShutdownDeferredConsumer(order.getRoute(), consumer));
+                    // use basic endpoint uri to not log verbose details or potential sensitive data
+                    String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
+                    uri = URISupport.sanitizeUri(uri);
+                    LOG.debug("Route: {} suspended and shutdown deferred, was consuming from: {}", order.getRoute().getId(),
+                            uri);
+                } else if (shutdown) {
+                    shutdownNow(order.getRoute().getId(), consumer);
+                    // use basic endpoint uri to not log verbose details or potential sensitive data
+                    String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
+                    uri = URISupport.sanitizeUri(uri);
+                    if (logger.shouldLog()) {
+                        logger.log(String.format("Route: %s shutdown complete, was consuming from: %s",
+                                order.getRoute().getId(), uri));
+                    }
+                } else {
+                    // we will stop it later, but for now it must run to be able to help all inflight messages
+                    // be safely completed
+                    deferredConsumers.add(new ShutdownDeferredConsumer(order.getRoute(), consumer));
+                    LOG.debug("Route: " + order.getRoute().getId()
+                              + (suspendOnly ? " shutdown deferred." : " suspension deferred."));
                 }
             }
 
@@ -708,13 +729,19 @@ public class DefaultShutdownStrategy extends ServiceSupport implements ShutdownS
                     // use basic endpoint uri to not log verbose details or potential sensitive data
                     String uri = deferred.getRoute().getEndpoint().getEndpointBaseUri();
                     uri = URISupport.sanitizeUri(uri);
-                    LOG.info("Route: {} suspend complete, was consuming from: {}", deferred.getRoute().getId(), uri);
+                    if (logger.shouldLog()) {
+                        logger.log(String.format("Route: %s suspend complete, was consuming from: %s",
+                                deferred.getRoute().getId(), uri));
+                    }
                 } else {
                     shutdownNow(deferred.getRoute().getId(), consumer);
                     // use basic endpoint uri to not log verbose details or potential sensitive data
                     String uri = deferred.getRoute().getEndpoint().getEndpointBaseUri();
                     uri = URISupport.sanitizeUri(uri);
-                    LOG.info("Route: {} shutdown complete, was consuming from: {}", deferred.getRoute().getId(), uri);
+                    if (logger.shouldLog()) {
+                        logger.log(String.format("Route: %s shutdown complete, was consuming from: %s",
+                                deferred.getRoute().getId(), uri));
+                    }
                 }
             }
 

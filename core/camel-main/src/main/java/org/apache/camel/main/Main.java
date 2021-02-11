@@ -41,9 +41,11 @@ public class Main extends MainCommandLineSupport {
     public static void main(String... args) throws Exception {
         Main main = new Main();
         instance = main;
-        main.run(args);
-
-        System.exit(main.getExitCode());
+        int code = main.run(args);
+        if (code != 0) {
+            System.exit(code);
+        }
+        // normal exit
     }
 
     /**
@@ -139,13 +141,10 @@ public class Main extends MainCommandLineSupport {
 
     @Override
     protected CamelContext createCamelContext() {
-        return new DefaultCamelContext(registry);
-        // TODO: LightweightCamelContext is not ready yet
-        //if (mainConfigurationProperties.isLightweight()) {
-        //    return new LightweightCamelContext(registry);
-        //} else {
-        //    return new DefaultCamelContext(registry);
-        //}
+        // do not build/init camel context yet
+        DefaultCamelContext answer = new DefaultCamelContext(false);
+        answer.setRegistry(registry);
+        return answer;
     }
 
 }

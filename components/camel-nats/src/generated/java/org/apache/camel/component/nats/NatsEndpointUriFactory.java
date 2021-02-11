@@ -22,7 +22,6 @@ public class NatsEndpointUriFactory extends org.apache.camel.support.component.E
     static {
         Set<String> props = new HashSet<>(29);
         props.add("replySubject");
-        props.add("synchronous");
         props.add("maxMessages");
         props.add("sslContextParameters");
         props.add("secure");
@@ -35,6 +34,7 @@ public class NatsEndpointUriFactory extends org.apache.camel.support.component.E
         props.add("traceConnection");
         props.add("connectionTimeout");
         props.add("reconnectTimeWait");
+        props.add("requestTimeout");
         props.add("pingInterval");
         props.add("noRandomizeServers");
         props.add("poolSize");

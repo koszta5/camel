@@ -29,9 +29,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,6 +56,7 @@ import org.apache.camel.ExtendedCamelContext;
 import org.apache.camel.FluentProducerTemplate;
 import org.apache.camel.GlobalEndpointConfiguration;
 import org.apache.camel.IsSingleton;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.NoSuchEndpointException;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
@@ -67,6 +70,8 @@ import org.apache.camel.ServiceStatus;
 import org.apache.camel.ShutdownRoute;
 import org.apache.camel.ShutdownRunningTask;
 import org.apache.camel.StartupListener;
+import org.apache.camel.StartupStep;
+import org.apache.camel.StartupSummaryLevel;
 import org.apache.camel.Suspendable;
 import org.apache.camel.SuspendableService;
 import org.apache.camel.TypeConverter;
@@ -136,8 +141,10 @@ import org.apache.camel.spi.RouteFactory;
 import org.apache.camel.spi.RoutePolicyFactory;
 import org.apache.camel.spi.RouteStartupOrder;
 import org.apache.camel.spi.RouteTemplateParameterSource;
+import org.apache.camel.spi.RoutesLoader;
 import org.apache.camel.spi.RuntimeEndpointRegistry;
 import org.apache.camel.spi.ShutdownStrategy;
+import org.apache.camel.spi.StartupStepRecorder;
 import org.apache.camel.spi.StreamCachingStrategy;
 import org.apache.camel.spi.Tracer;
 import org.apache.camel.spi.Transformer;
@@ -160,6 +167,7 @@ import org.apache.camel.support.ResolverHelper;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.service.BaseService;
 import org.apache.camel.support.service.ServiceHelper;
+import org.apache.camel.support.startup.DefaultStartupStepRecorder;
 import org.apache.camel.util.IOHelper;
 import org.apache.camel.util.ObjectHelper;
 import org.apache.camel.util.StopWatch;
@@ -198,6 +206,7 @@ public abstract class AbstractCamelContext extends BaseService
     private final ThreadLocal<Boolean> isStartingRoutes = new ThreadLocal<>();
     private final ThreadLocal<Boolean> isSetupRoutes = new ThreadLocal<>();
     private final Map<String, FactoryFinder> factories = new ConcurrentHashMap<>();
+    private final Map<String, FactoryFinder> bootstrapFactories = new ConcurrentHashMap<>();
     private volatile FactoryFinder bootstrapFactoryFinder;
     private volatile ConfigurerResolver bootstrapConfigurerResolver;
     private final Map<String, RouteService> routeServices = new LinkedHashMap<>();
@@ -226,6 +235,7 @@ public abstract class AbstractCamelContext extends BaseService
     private List<RoutePolicyFactory> routePolicyFactories = new ArrayList<>();
     // special flags to control the first startup which can are special
     private volatile boolean firstStartDone;
+    private volatile boolean firstStopDone;
     private volatile boolean doNotStartRoutesOnFirstStart;
     private Initialization initialization = Initialization.Default;
     private Boolean autoStartup = Boolean.TRUE;
@@ -275,6 +285,7 @@ public abstract class AbstractCamelContext extends BaseService
     private volatile BeanProxyFactory beanProxyFactory;
     private volatile BeanProcessorFactory beanProcessorFactory;
     private volatile XMLRoutesDefinitionLoader xmlRoutesDefinitionLoader;
+    private volatile RoutesLoader routesLoader;
     private volatile ModelToXMLDumper modelToXMLDumper;
     private volatile RestBindingJaxbDataFormatFactory restBindingJaxbDataFormatFactory;
     private volatile RuntimeCamelCatalog runtimeCamelCatalog;
@@ -303,14 +314,17 @@ public abstract class AbstractCamelContext extends BaseService
     private volatile boolean eventNotificationApplicable;
     private volatile TransformerRegistry<TransformerKey> transformerRegistry;
     private volatile ValidatorRegistry<ValidatorKey> validatorRegistry;
+    private volatile StartupStepRecorder startupStepRecorder = new DefaultStartupStepRecorder();
     private EndpointRegistry<EndpointKey> endpoints;
     private RuntimeEndpointRegistry runtimeEndpointRegistry;
     private ShutdownRoute shutdownRoute = ShutdownRoute.Default;
     private ShutdownRunningTask shutdownRunningTask = ShutdownRunningTask.CompleteCurrentTaskOnly;
     private Debugger debugger;
+    private long buildTaken;
+    private long initTaken;
     private long startDate;
-
     private SSLContextParameters sslContextParameters;
+    private StartupSummaryLevel startupSummaryLevel = StartupSummaryLevel.Default;
 
     /**
      * Creates the {@link CamelContext} using {@link org.apache.camel.support.DefaultRegistry} as registry.
@@ -352,6 +366,14 @@ public abstract class AbstractCamelContext extends BaseService
 
         // add the default bootstrap closer
         this.bootstraps.add(new DefaultServiceBootstrapCloseable(this));
+
+        // add a cleaner for FactoryFinder used only when bootstrapping the context
+        this.bootstraps.add(new BootstrapCloseable() {
+            @Override
+            public void close() throws IOException {
+                bootstrapFactories.clear();
+            }
+        });
 
         if (build) {
             try {
@@ -574,7 +596,9 @@ public abstract class AbstractCamelContext extends BaseService
             if (component != null && created.get() && autoStart && (isStarted() || isStarting())) {
                 // If the component is looked up after the context is started,
                 // lets start it up.
+                StartupStep step = startupStepRecorder.beginStep(Component.class, name, "Start Component");
                 startService(component);
+                startupStepRecorder.endStep(step);
             }
 
             return component;
@@ -592,6 +616,7 @@ public abstract class AbstractCamelContext extends BaseService
     private Component initComponent(String name, boolean autoCreateComponents) {
         Component component = null;
         if (autoCreateComponents) {
+            StartupStep step = startupStepRecorder.beginStep(Component.class, name, "Resolve Component");
             try {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Using ComponentResolver: {} to resolve component with name: {}", getComponentResolver(), name);
@@ -645,6 +670,7 @@ public abstract class AbstractCamelContext extends BaseService
             } catch (Exception e) {
                 throw new RuntimeCamelException("Cannot auto create component: " + name, e);
             }
+            startupStepRecorder.endStep(step);
         }
         return component;
     }
@@ -755,6 +781,7 @@ public abstract class AbstractCamelContext extends BaseService
             answer.add(oldEndpoint);
             stopServices(oldEndpoint);
         } else {
+            List<EndpointKey> toRemove = new ArrayList<>();
             for (Map.Entry<EndpointKey, Endpoint> entry : endpoints.entrySet()) {
                 oldEndpoint = entry.getValue();
                 if (EndpointHelper.matchEndpoint(this, oldEndpoint.getEndpointUri(), uri)) {
@@ -764,8 +791,11 @@ public abstract class AbstractCamelContext extends BaseService
                         LOG.warn("Error stopping endpoint " + oldEndpoint + ". This exception will be ignored.", e);
                     }
                     answer.add(oldEndpoint);
-                    endpoints.remove(entry.getKey());
+                    toRemove.add(entry.getKey());
                 }
+            }
+            for (EndpointKey key : toRemove) {
+                endpoints.remove(key);
             }
         }
 
@@ -792,7 +822,17 @@ public abstract class AbstractCamelContext extends BaseService
 
     @Override
     public Endpoint getEndpoint(String uri) {
-        return doGetEndpoint(uri, null, false, false);
+        StartupStep step = null;
+        // only record startup step during startup (not started)
+        if (!isStarted() && startupStepRecorder.isEnabled()) {
+            String u = URISupport.sanitizeUri(uri);
+            step = startupStepRecorder.beginStep(Endpoint.class, u, "Get Endpoint");
+        }
+        Endpoint answer = doGetEndpoint(uri, null, false, false);
+        if (step != null) {
+            startupStepRecorder.endStep(step);
+        }
+        return answer;
     }
 
     @Override
@@ -1670,6 +1710,12 @@ public abstract class AbstractCamelContext extends BaseService
         return languages.computeIfAbsent(name, new Function<String, Language>() {
             @Override
             public Language apply(String s) {
+                StartupStep step = null;
+                // only record startup step during startup (not started)
+                if (!isStarted() && startupStepRecorder.isEnabled()) {
+                    step = startupStepRecorder.beginStep(Language.class, name, "Resolve Language");
+                }
+
                 final CamelContext camelContext = getCamelContextReference();
 
                 // as first iteration, check if there is a language instance for the given name
@@ -1702,6 +1748,9 @@ public abstract class AbstractCamelContext extends BaseService
                     }
                 }
 
+                if (step != null) {
+                    startupStepRecorder.endStep(step);
+                }
                 return language;
             }
         });
@@ -2032,9 +2081,7 @@ public abstract class AbstractCamelContext extends BaseService
             logListeners = new LinkedHashSet<>();
         }
         // avoid adding double which can happen with spring xml on spring boot
-        if (!logListeners.contains(listener)) {
-            logListeners.add(listener);
-        }
+        logListeners.add(listener);
     }
 
     @Override
@@ -2505,25 +2552,46 @@ public abstract class AbstractCamelContext extends BaseService
 
     @Override
     public void doBuild() throws Exception {
+        StopWatch watch = new StopWatch();
+
+        // auto-detect step recorder from classpath if none has been explicit configured
+        if (startupStepRecorder.getClass().getSimpleName().equals("DefaultStartupStepRecorder")) {
+            StartupStepRecorder fr = getBootstrapFactoryFinder()
+                    .newInstance(StartupStepRecorder.FACTORY, StartupStepRecorder.class).orElse(null);
+            if (fr != null) {
+                LOG.debug("Discovered startup recorder: {} from classpath", fr);
+                startupStepRecorder = fr;
+            }
+        }
+
+        startupStepRecorder.start();
+        StartupStep step = startupStepRecorder.beginStep(CamelContext.class, null, "Build CamelContext");
+
         // Initialize LRUCacheFactory as eager as possible,
         // to let it warm up concurrently while Camel is startup up
         if (initialization != Initialization.Lazy) {
+            StartupStep subStep = startupStepRecorder.beginStep(CamelContext.class, null, "Setup LRUCacheFactory");
             LRUCacheFactory.init();
+            startupStepRecorder.endStep(subStep);
         }
 
         // Setup management first since end users may use it to add event
         // notifiers using the management strategy before the CamelContext has been started
+        StartupStep step3 = startupStepRecorder.beginStep(CamelContext.class, null, "Setup Management");
         setupManagement(null);
+        startupStepRecorder.endStep(step3);
 
         // setup health-check registry as its needed this early phase for 3rd party to register custom repositories
         HealthCheckRegistry hcr = getExtension(HealthCheckRegistry.class);
         if (hcr == null) {
+            StartupStep step4 = startupStepRecorder.beginStep(CamelContext.class, null, "Setup HealthCheckRegistry");
             hcr = createHealthCheckRegistry();
             if (hcr != null) {
                 // install health-check registry if it was discovered from classpath (camel-health)
                 hcr.setCamelContext(this);
                 setExtension(HealthCheckRegistry.class, hcr);
             }
+            startupStepRecorder.endStep(step4);
         }
 
         // Call all registered trackers with this context
@@ -2532,15 +2600,45 @@ public abstract class AbstractCamelContext extends BaseService
 
         // Setup type converter eager as its highly in use and should not be lazy initialized
         if (eagerCreateTypeConverter()) {
+            StartupStep step5 = startupStepRecorder.beginStep(CamelContext.class, null, "Setting up TypeConverter");
             getOrCreateTypeConverter();
+            startupStepRecorder.endStep(step5);
         }
+
+        startupStepRecorder.endStep(step);
+
+        buildTaken = watch.taken();
+        LOG.debug("Apache Camel {} ({}) built in {}", getVersion(), getName(), TimeUtils.printDuration(buildTaken));
+    }
+
+    protected void resetBuildTime() {
+        // needed by camel-quarkus
+        buildTaken = 0;
     }
 
     @Override
     public void doInit() throws Exception {
-        // start the route controller
+        StopWatch watch = new StopWatch();
+
+        StartupStep step = startupStepRecorder.beginStep(CamelContext.class, null, "Init CamelContext");
+
+        // init the route controller
         this.routeController = getRouteController();
-        ServiceHelper.initService(this.routeController);
+        if (startupSummaryLevel == StartupSummaryLevel.Classic || startupSummaryLevel == StartupSummaryLevel.Verbose) {
+            // classic/verbose startup should let route controller do the route startup logging
+            if (routeController.getLoggingLevel().ordinal() < LoggingLevel.INFO.ordinal()) {
+                routeController.setLoggingLevel(LoggingLevel.INFO);
+            }
+        }
+
+        // init the shutdown strategy
+        this.shutdownStrategy = getShutdownStrategy();
+        if (startupSummaryLevel == StartupSummaryLevel.Classic || startupSummaryLevel == StartupSummaryLevel.Verbose) {
+            // classic/verbose startup should let route controller do the route shutdown logging
+            if (shutdownStrategy != null && shutdownStrategy.getLoggingLevel().ordinal() < LoggingLevel.INFO.ordinal()) {
+                shutdownStrategy.setLoggingLevel(LoggingLevel.INFO);
+            }
+        }
 
         // optimize - before starting routes lets check if event notifications is possible
         eventNotificationApplicable = EventHelper.eventsApplicable(this);
@@ -2652,29 +2750,49 @@ public abstract class AbstractCamelContext extends BaseService
             }
         }
 
-        // start the route definitions before the routes is started
+        // init the route definitions before the routes is started
+        StartupStep subStep = startupStepRecorder.beginStep(CamelContext.class, getName(), "Init Routes");
+        // the method is called start but at this point it will only initialize (as context is starting up)
         startRouteDefinitions();
+        // this will init route definitions and populate as route services which we can then initialize now
+        internalRouteStartupManager.doInitRoutes(routeServices);
+        startupStepRecorder.endStep(subStep);
 
-        for (LifecycleStrategy strategy : lifecycleStrategies) {
-            try {
-                strategy.onContextInitialized(this);
-            } catch (VetoCamelContextStartException e) {
-                // okay we should not start Camel since it was vetoed
-                LOG.warn("Lifecycle strategy " + strategy + " vetoed initializing CamelContext ({}) due to: {}", getName(),
-                        e.getMessage());
-                throw e;
-            } catch (Exception e) {
-                LOG.warn("Lifecycle strategy " + strategy + " failed initializing CamelContext ({}) due to: {}", getName(),
-                        e.getMessage());
-                throw e;
+        if (!lifecycleStrategies.isEmpty()) {
+            subStep = startupStepRecorder.beginStep(CamelContext.class, getName(), "LifecycleStrategy onContextInitialized");
+            for (LifecycleStrategy strategy : lifecycleStrategies) {
+                try {
+                    strategy.onContextInitialized(this);
+                } catch (VetoCamelContextStartException e) {
+                    // okay we should not start Camel since it was vetoed
+                    LOG.warn("Lifecycle strategy " + strategy + " vetoed initializing CamelContext ({}) due to: {}", getName(),
+                            e.getMessage());
+                    throw e;
+                } catch (Exception e) {
+                    LOG.warn("Lifecycle strategy " + strategy + " failed initializing CamelContext ({}) due to: {}", getName(),
+                            e.getMessage());
+                    throw e;
+                }
             }
+            startupStepRecorder.endStep(subStep);
         }
 
         EventHelper.notifyCamelContextInitialized(this);
+
+        startupStepRecorder.endStep(step);
+
+        initTaken = watch.taken();
+        LOG.debug("Apache Camel {} ({}) initialized in {}", getVersion(), getName(), TimeUtils.printDuration(initTaken));
     }
 
     @Override
     protected void doStart() throws Exception {
+        if (firstStartDone) {
+            // its not good practice to reset a camel context
+            LOG.warn("Starting CamelContext: {} after the context has been stopped is not recommended", getName());
+        }
+        StartupStep step = startupStepRecorder.beginStep(CamelContext.class, getName(), "Start CamelContext");
+
         try {
             doStartContext();
         } catch (Exception e) {
@@ -2683,10 +2801,22 @@ public abstract class AbstractCamelContext extends BaseService
             // rethrow cause
             throw e;
         }
+
+        startupStepRecorder.endStep(step);
+
+        // if we should only record the startup process then stop it right after started
+        if (startupStepRecorder.getStartupRecorderDuration() < 0) {
+            startupStepRecorder.stop();
+        }
     }
 
     protected void doStartContext() throws Exception {
-        LOG.info("Apache Camel {} ({}) is starting", getVersion(), getName());
+        if (startupSummaryLevel == StartupSummaryLevel.Classic) {
+            // classic was logging this at INFO level
+            LOG.info("Apache Camel {} ({}) is starting", getVersion(), getName());
+        } else if (LOG.isDebugEnabled()) {
+            LOG.debug("Apache Camel {} ({}) is starting", getVersion(), getName());
+        }
         vetoed = null;
         startDate = System.currentTimeMillis();
         stopWatch.restart();
@@ -2726,6 +2856,65 @@ public abstract class AbstractCamelContext extends BaseService
             }
         }
 
+        // ant duplicate components in use?
+        logDuplicateComponents();
+
+        // log startup summary
+        if (startupSummaryLevel == StartupSummaryLevel.Classic) {
+            logClassicStartSummary();
+        } else {
+            logStartSummary();
+        }
+
+        // now Camel has been started/bootstrap is complete, then run cleanup to help free up memory etc
+        for (BootstrapCloseable bootstrap : bootstraps) {
+            try {
+                bootstrap.close();
+            } catch (Exception e) {
+                LOG.warn("Error during closing bootstrap. This exception is ignored.", e);
+            }
+        }
+        bootstraps.clear();
+
+        if (isLightweight()) {
+            LOG.info("Lightweight mode enabled. Performing optimizations and memory reduction.");
+            ReifierStrategy.clearReifiers();
+            adapt(ExtendedCamelContext.class).disposeModel();
+        }
+    }
+
+    protected void logDuplicateComponents() {
+        // output how many instances of the same component class are in use, as multiple instances is potential a mistake
+        if (LOG.isInfoEnabled()) {
+            Map<Class<?>, Set<String>> counters = new LinkedHashMap<>();
+            List<String> cnames = getComponentNames();
+            Collections.sort(cnames);
+            for (String sourceName : cnames) {
+                Class<?> source = getComponent(sourceName).getClass();
+                if (!counters.containsKey(source)) {
+                    for (String targetName : cnames) {
+                        Class<?> target = getComponent(targetName).getClass();
+                        if (source == target) {
+                            Set<String> names = counters.computeIfAbsent(source, k -> new TreeSet<>());
+                            names.add(targetName);
+                        }
+                    }
+                }
+            }
+            for (Map.Entry<Class<?>, Set<String>> entry : counters.entrySet()) {
+                int count = entry.getValue().size();
+                if (count > 1) {
+                    String fqn = entry.getKey().getName();
+                    String names = String.join(", ", entry.getValue());
+                    LOG.info("Using {} instances of same component class: {} with names: {}", count,
+                            fqn, names);
+                }
+            }
+        }
+
+    }
+
+    protected void logClassicStartSummary() {
         if (LOG.isInfoEnabled()) {
             // count how many routes are actually started
             int started = 0;
@@ -2745,22 +2934,69 @@ public abstract class AbstractCamelContext extends BaseService
                         getRouteController().getClass().getName());
             }
             LOG.info("Apache Camel {} ({}) started in {}", getVersion(), getName(), TimeUtils.printDuration(stopWatch.taken()));
+        }
+    }
 
-            // now Camel has been started/bootstrap is complete, then run cleanup to help free up memory etc
-            for (BootstrapCloseable bootstrap : bootstraps) {
-                try {
-                    bootstrap.close();
-                } catch (Exception e) {
-                    LOG.warn("Error during closing bootstrap. This exception is ignored.", e);
+    protected void logStartSummary() {
+        // supervising route controller should do their own startup log summary
+        boolean supervised = getRouteController().isSupervising();
+        if (!supervised && startupSummaryLevel != StartupSummaryLevel.Oneline && startupSummaryLevel != StartupSummaryLevel.Off
+                && LOG.isInfoEnabled()) {
+            int started = 0;
+            int total = 0;
+            int disabled = 0;
+            List<String> lines = new ArrayList<>();
+            routeStartupOrder.sort(Comparator.comparingInt(RouteStartupOrder::getStartupOrder));
+            for (RouteStartupOrder order : routeStartupOrder) {
+                total++;
+                String id = order.getRoute().getRouteId();
+                String status = getRouteStatus(id).name();
+                if (ServiceStatus.Started.name().equals(status)) {
+                    started++;
+                }
+                // use basic endpoint uri to not log verbose details or potential sensitive data
+                String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
+                uri = URISupport.sanitizeUri(uri);
+                lines.add(String.format("\t%s %s (%s)", status, id, uri));
+            }
+            for (Route route : routes) {
+                if (!route.isAutoStartup()) {
+                    total++;
+                    disabled++;
+                    String id = route.getRouteId();
+                    String status = getRouteStatus(id).name();
+                    if (ServiceStatus.Stopped.name().equals(status)) {
+                        status = "Disabled";
+                    }
+                    // use basic endpoint uri to not log verbose details or potential sensitive data
+                    String uri = route.getEndpoint().getEndpointBaseUri();
+                    uri = URISupport.sanitizeUri(uri);
+                    lines.add(String.format("\t%s %s (%s)", status, id, uri));
                 }
             }
-            bootstraps.clear();
-
-            if (isLightweight()) {
-                LOG.info("Lightweight mode enabled. Performing optimizations and memory reduction.");
-                ReifierStrategy.clearReifiers();
-                adapt(ExtendedCamelContext.class).disposeModel();
+            if (disabled > 0) {
+                LOG.info("Routes startup summary (total:{} started:{} disabled:{})", total, started, disabled);
+            } else {
+                LOG.info("Routes startup summary (total:{} started:{})", total, started);
             }
+            // if we are default/verbose then log each route line
+            if (startupSummaryLevel == StartupSummaryLevel.Default || startupSummaryLevel == StartupSummaryLevel.Verbose) {
+                for (String line : lines) {
+                    LOG.info(line);
+                }
+            }
+        }
+
+        if (startupSummaryLevel != StartupSummaryLevel.Off && LOG.isInfoEnabled()) {
+            long taken = stopWatch.taken();
+            long max = buildTaken + initTaken + taken;
+            String total = TimeUtils.printDuration(max);
+            String start = TimeUtils.printDuration(taken);
+            String init = TimeUtils.printDuration(initTaken);
+            String built = TimeUtils.printDuration(buildTaken);
+            LOG.info("Apache Camel {} ({}) started in {} (build:{} init:{} start:{})", getVersion(), getName(), total, built,
+                    init,
+                    start);
         }
     }
 
@@ -2804,29 +3040,39 @@ public abstract class AbstractCamelContext extends BaseService
         startService(managementStrategy);
 
         // start lifecycle strategies
-        ServiceHelper.startService(lifecycleStrategies);
-        for (LifecycleStrategy strategy : lifecycleStrategies) {
-            try {
-                strategy.onContextStarting(this);
-                strategy.onContextStart(this);
-            } catch (VetoCamelContextStartException e) {
-                // okay we should not start Camel since it was vetoed
-                LOG.warn("Lifecycle strategy " + strategy + " vetoed starting CamelContext ({}) due to: {}", getName(),
-                        e.getMessage());
-                throw e;
-            } catch (Exception e) {
-                LOG.warn("Lifecycle strategy " + strategy + " failed starting CamelContext ({}) due to: {}", getName(),
-                        e.getMessage());
-                throw e;
+        if (!lifecycleStrategies.isEmpty()) {
+            StartupStep subStep
+                    = startupStepRecorder.beginStep(CamelContext.class, getName(), "LifecycleStrategy onContextStarting");
+            ServiceHelper.startService(lifecycleStrategies);
+            for (LifecycleStrategy strategy : lifecycleStrategies) {
+                try {
+                    strategy.onContextStarting(this);
+                    strategy.onContextStart(this);
+                } catch (VetoCamelContextStartException e) {
+                    // okay we should not start Camel since it was vetoed
+                    LOG.warn("Lifecycle strategy " + strategy + " vetoed starting CamelContext ({}) due to: {}", getName(),
+                            e.getMessage());
+                    throw e;
+                } catch (Exception e) {
+                    LOG.warn("Lifecycle strategy " + strategy + " failed starting CamelContext ({}) due to: {}", getName(),
+                            e.getMessage());
+                    throw e;
+                }
             }
+            startupStepRecorder.endStep(subStep);
         }
 
-        // sort the startup listeners so they are started in the right order
-        startupListeners.sort(OrderedComparator.get());
-        // now call the startup listeners where the routes has been warmed up
-        // (only the actual route consumer has not yet been started)
-        for (StartupListener startup : startupListeners) {
-            startup.onCamelContextStarting(getCamelContextReference(), isStarted());
+        if (!startupListeners.isEmpty()) {
+            StartupStep subStep
+                    = startupStepRecorder.beginStep(CamelContext.class, getName(), "StartupListener onCamelContextStarting");
+            // sort the startup listeners so they are started in the right order
+            startupListeners.sort(OrderedComparator.get());
+            // now call the startup listeners where the routes has been warmed up
+            // (only the actual route consumer has not yet been started)
+            for (StartupListener startup : startupListeners) {
+                startup.onCamelContextStarting(getCamelContextReference(), isStarted());
+            }
+            startupStepRecorder.endStep(subStep);
         }
 
         // start notifiers as services
@@ -2855,8 +3101,8 @@ public abstract class AbstractCamelContext extends BaseService
         } else {
             // log if stream caching is not in use as this can help people to
             // enable it if they use streams
-            LOG.info("StreamCaching is not in use. If using streams then it's recommended to enable stream caching."
-                     + " See more details at http://camel.apache.org/stream-caching.html");
+            LOG.debug("StreamCaching is not in use. If using streams then it's recommended to enable stream caching."
+                      + " See more details at http://camel.apache.org/stream-caching.html");
         }
 
         if (isAllowUseOriginalMessage()) {
@@ -2899,9 +3145,11 @@ public abstract class AbstractCamelContext extends BaseService
         }
 
         // invoke this logic to warmup the routes and if possible also start the routes
+        StartupStep subStep = startupStepRecorder.beginStep(CamelContext.class, getName(), "Start Routes");
         EventHelper.notifyCamelContextRoutesStarting(this);
         internalRouteStartupManager.doStartOrResumeRoutes(routeServices, true, !doNotStartRoutesOnFirstStart, false, true);
         EventHelper.notifyCamelContextRoutesStarted(this);
+        startupStepRecorder.endStep(subStep);
 
         long cacheCounter = beanIntrospection != null ? beanIntrospection.getCachedClassesCounter() : 0;
         if (cacheCounter > 0) {
@@ -2918,7 +3166,16 @@ public abstract class AbstractCamelContext extends BaseService
     @Override
     protected void doStop() throws Exception {
         stopWatch.restart();
-        LOG.info("Apache Camel {} ({}) is shutting down", getVersion(), getName());
+
+        if (startupSummaryLevel != StartupSummaryLevel.Oneline && startupSummaryLevel != StartupSummaryLevel.Off) {
+            if (shutdownStrategy != null && shutdownStrategy.getTimeUnit() != null) {
+                long timeout = shutdownStrategy.getTimeUnit().toMillis(shutdownStrategy.getTimeout());
+                String to = TimeUtils.printDuration(timeout);
+                LOG.info("Apache Camel {} ({}) shutting down (timeout:{})", getVersion(), getName(), to);
+            } else {
+                LOG.info("Apache Camel {} ({}) shutting down", getVersion(), getName());
+            }
+        }
 
         EventHelper.notifyCamelContextStopping(this);
         EventHelper.notifyCamelContextRoutesStopping(this);
@@ -2958,6 +3215,12 @@ public abstract class AbstractCamelContext extends BaseService
             list.add(routeService);
         }
         shutdownServices(list, false);
+
+        if (startupSummaryLevel != StartupSummaryLevel.Classic && startupSummaryLevel != StartupSummaryLevel.Oneline
+                && startupSummaryLevel != StartupSummaryLevel.Off) {
+            logRouteStopSummary();
+        }
+
         // do not clear route services or startup listeners as we can start
         // Camel again and get the route back as before
         routeStartupOrder.clear();
@@ -3038,11 +3301,21 @@ public abstract class AbstractCamelContext extends BaseService
         // stop the lazy created so they can be re-created on restart
         forceStopLazyInitialization();
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("Apache Camel {} ({}) uptime {}", getVersion(), getName(), getUptime());
-            LOG.info("Apache Camel {} ({}) is shutdown in {}", getVersion(), getName(),
-                    TimeUtils.printDuration(stopWatch.taken()));
+        if (startupSummaryLevel == StartupSummaryLevel.Classic) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Apache Camel {} ({}) uptime {}", getVersion(), getName(), getUptime());
+                LOG.info("Apache Camel {} ({}) is shutdown in {}", getVersion(), getName(),
+                        TimeUtils.printDuration(stopWatch.taken()));
+            }
+        } else if (startupSummaryLevel != StartupSummaryLevel.Off) {
+            if (LOG.isInfoEnabled()) {
+                String taken = TimeUtils.printDuration(stopWatch.taken());
+                LOG.info("Apache Camel {} ({}) shutdown in {} (uptime:{})", getVersion(), getName(), taken, getUptime());
+            }
         }
+
+        // ensure any recorder is stopped in case it was kept running
+        startupStepRecorder.stop();
 
         // and clear start date
         startDate = 0;
@@ -3050,6 +3323,57 @@ public abstract class AbstractCamelContext extends BaseService
         // Call all registered trackers with this context
         // Note, this may use a partially constructed object
         CamelContextTracker.notifyContextDestroyed(this);
+
+        firstStartDone = true;
+    }
+
+    @Override
+    protected void doFail(Exception e) {
+        super.doFail(e);
+        // reset flag in case of startup fail as we want to be able to allow to start again
+        firstStartDone = false;
+    }
+
+    protected void logRouteStopSummary() {
+        if (LOG.isInfoEnabled()) {
+            int total = 0;
+            int stopped = 0;
+            int forced = 0;
+            List<String> lines = new ArrayList<>();
+
+            if (shutdownStrategy != null && shutdownStrategy.isShutdownRoutesInReverseOrder()) {
+                routeStartupOrder.sort(Comparator.comparingInt(RouteStartupOrder::getStartupOrder).reversed());
+            } else {
+                routeStartupOrder.sort(Comparator.comparingInt(RouteStartupOrder::getStartupOrder));
+            }
+            for (RouteStartupOrder order : routeStartupOrder) {
+                total++;
+                String id = order.getRoute().getRouteId();
+                String status = getRouteStatus(id).name();
+                if (ServiceStatus.Stopped.name().equals(status)) {
+                    stopped++;
+                }
+                if (order.getRoute().getProperties().containsKey("forcedShutdown")) {
+                    forced++;
+                    status = "Forced stopped";
+                }
+                // use basic endpoint uri to not log verbose details or potential sensitive data
+                String uri = order.getRoute().getEndpoint().getEndpointBaseUri();
+                uri = URISupport.sanitizeUri(uri);
+                lines.add(String.format("\t%s %s (%s)", status, id, uri));
+            }
+            if (forced > 0) {
+                LOG.info("Routes shutdown summary (total:{} stopped:{} forced:{})", total, stopped, forced);
+            } else {
+                LOG.info("Routes shutdown summary (total:{} stopped:{})", total, stopped);
+            }
+            // if we are default/verbose then log each route line
+            if (startupSummaryLevel == StartupSummaryLevel.Default || startupSummaryLevel == StartupSummaryLevel.Verbose) {
+                for (String line : lines) {
+                    LOG.info(line);
+                }
+            }
+        }
     }
 
     public void startRouteDefinitions() throws Exception {
@@ -3162,6 +3486,8 @@ public abstract class AbstractCamelContext extends BaseService
                 // start the route service
                 routeServices.put(routeService.getId(), routeService);
                 if (shouldStartRoutes()) {
+                    StartupStep step
+                            = startupStepRecorder.beginStep(Route.class, routeService.getId(), "Start Route Services");
                     // this method will log the routes being started
                     internalRouteStartupManager.safelyStartRouteServices(true, true, true, false, addingRoutes, routeService);
                     // start route services if it was configured to auto startup
@@ -3172,6 +3498,7 @@ public abstract class AbstractCamelContext extends BaseService
                         // starting a route (not adding new routes)
                         routeService.start();
                     }
+                    startupStepRecorder.endStep(step);
                 }
             }
         } finally {
@@ -3238,13 +3565,19 @@ public abstract class AbstractCamelContext extends BaseService
      * Force some lazy initialization to occur upfront before we start any components and create routes
      */
     protected void forceLazyInitialization() {
+        StartupStep step = startupStepRecorder.beginStep(CamelContext.class, getName(), "Start Mandatory Services");
         initEagerMandatoryServices();
+        startupStepRecorder.endStep(step);
 
         if (initialization != Initialization.Lazy) {
+            step = startupStepRecorder.beginStep(CamelContext.class, getName(), "Start Standard Services");
             doStartStandardServices();
+            startupStepRecorder.endStep(step);
 
             if (initialization == Initialization.Eager) {
+                step = startupStepRecorder.beginStep(CamelContext.class, getName(), "Start Eager Services");
                 doStartEagerServices();
+                startupStepRecorder.endStep(step);
             }
         }
     }
@@ -3313,6 +3646,8 @@ public abstract class AbstractCamelContext extends BaseService
         getModelJAXBContextFactory();
         getUnitOfWorkFactory();
         getRouteController();
+        getRoutesLoader();
+
         try {
             getRestRegistryFactory();
         } catch (IllegalArgumentException e) {
@@ -3434,6 +3769,15 @@ public abstract class AbstractCamelContext extends BaseService
     @Override
     public void setBootstrapFactoryFinder(FactoryFinder factoryFinder) {
         this.bootstrapFactoryFinder = factoryFinder;
+    }
+
+    @Override
+    public FactoryFinder getBootstrapFactoryFinder(String path) {
+        return bootstrapFactories.computeIfAbsent(path, this::createBootstrapFactoryFinder);
+    }
+
+    protected FactoryFinder createBootstrapFactoryFinder(String path) {
+        return getFactoryFinderResolver().resolveBootstrapFactoryFinder(getClassResolver(), path);
     }
 
     @Override
@@ -3783,29 +4127,44 @@ public abstract class AbstractCamelContext extends BaseService
 
     @Override
     public DataFormat resolveDataFormat(String name) {
-        final DataFormat answer = dataformats.computeIfAbsent(name, new Function<String, DataFormat>() {
-            @Override
-            public DataFormat apply(String s) {
-                DataFormat df = ResolverHelper.lookupDataFormatInRegistryWithFallback(getCamelContextReference(), name);
-
-                if (df != null) {
-                    // inject CamelContext if aware
-                    CamelContextAware.trySetCamelContext(df, getCamelContextReference());
-
-                    for (LifecycleStrategy strategy : lifecycleStrategies) {
-                        strategy.onDataFormatCreated(name, df);
-                    }
-                }
-
-                return df;
+        final DataFormat answer = dataformats.computeIfAbsent(name, s -> {
+            StartupStep step = null;
+            // only record startup step during startup (not started)
+            if (!isStarted() && startupStepRecorder.isEnabled()) {
+                step = startupStepRecorder.beginStep(DataFormat.class, name, "Resolve DataFormat");
             }
+
+            DataFormat df = Optional
+                    .ofNullable(ResolverHelper.lookupDataFormatInRegistryWithFallback(getCamelContextReference(), name))
+                    .orElseGet(() -> getDataFormatResolver().createDataFormat(name, getCamelContextReference()));
+
+            if (df != null) {
+                // inject CamelContext if aware
+                CamelContextAware.trySetCamelContext(df, getCamelContextReference());
+
+                for (LifecycleStrategy strategy : lifecycleStrategies) {
+                    strategy.onDataFormatCreated(name, df);
+                }
+            }
+
+            if (step != null) {
+                startupStepRecorder.endStep(step);
+            }
+
+            return df;
         });
 
-        return answer != null ? answer : createDataFormat(name);
+        return answer;
     }
 
     @Override
     public DataFormat createDataFormat(String name) {
+        StartupStep step = null;
+        // only record startup step during startup (not started)
+        if (!isStarted() && startupStepRecorder.isEnabled()) {
+            step = startupStepRecorder.beginStep(DataFormat.class, name, "Create DataFormat");
+        }
+
         DataFormat answer = getDataFormatResolver().createDataFormat(name, getCamelContextReference());
 
         // inject CamelContext if aware
@@ -3815,6 +4174,9 @@ public abstract class AbstractCamelContext extends BaseService
             strategy.onDataFormatCreated(name, answer);
         }
 
+        if (step != null) {
+            startupStepRecorder.endStep(step);
+        }
         return answer;
     }
 
@@ -4177,6 +4539,16 @@ public abstract class AbstractCamelContext extends BaseService
     }
 
     @Override
+    public StartupSummaryLevel getStartupSummaryLevel() {
+        return startupSummaryLevel;
+    }
+
+    @Override
+    public void setStartupSummaryLevel(StartupSummaryLevel startupSummaryLevel) {
+        this.startupSummaryLevel = startupSummaryLevel;
+    }
+
+    @Override
     public HeadersMapFactory getHeadersMapFactory() {
         return headersMapFactory;
     }
@@ -4186,6 +4558,7 @@ public abstract class AbstractCamelContext extends BaseService
         this.headersMapFactory = doAddService(headersMapFactory);
     }
 
+    @Override
     public XMLRoutesDefinitionLoader getXMLRoutesDefinitionLoader() {
         if (xmlRoutesDefinitionLoader == null) {
             synchronized (lock) {
@@ -4197,8 +4570,26 @@ public abstract class AbstractCamelContext extends BaseService
         return xmlRoutesDefinitionLoader;
     }
 
+    @Override
     public void setXMLRoutesDefinitionLoader(XMLRoutesDefinitionLoader xmlRoutesDefinitionLoader) {
         this.xmlRoutesDefinitionLoader = doAddService(xmlRoutesDefinitionLoader);
+    }
+
+    @Override
+    public RoutesLoader getRoutesLoader() {
+        if (routesLoader == null) {
+            synchronized (lock) {
+                if (routesLoader == null) {
+                    setRoutesLoader(createRoutesLoader());
+                }
+            }
+        }
+        return routesLoader;
+    }
+
+    @Override
+    public void setRoutesLoader(RoutesLoader routesLoader) {
+        this.routesLoader = doAddService(routesLoader);
     }
 
     public ModelToXMLDumper getModelToXMLDumper() {
@@ -4418,6 +4809,8 @@ public abstract class AbstractCamelContext extends BaseService
 
     protected abstract XMLRoutesDefinitionLoader createXMLRoutesDefinitionLoader();
 
+    protected abstract RoutesLoader createRoutesLoader();
+
     protected abstract ModelToXMLDumper createModelToXMLDumper();
 
     protected abstract RestBindingJaxbDataFormatFactory createRestBindingJaxbDataFormatFactory();
@@ -4462,6 +4855,16 @@ public abstract class AbstractCamelContext extends BaseService
     @Override
     public EndpointUriFactory getEndpointUriFactory(String scheme) {
         return getUriFactoryResolver().resolveFactory(scheme, this);
+    }
+
+    @Override
+    public StartupStepRecorder getStartupStepRecorder() {
+        return startupStepRecorder;
+    }
+
+    @Override
+    public void setStartupStepRecorder(StartupStepRecorder startupStepRecorder) {
+        this.startupStepRecorder = startupStepRecorder;
     }
 
     @Deprecated

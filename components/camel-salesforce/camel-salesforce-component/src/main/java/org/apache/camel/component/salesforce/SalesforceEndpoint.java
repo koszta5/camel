@@ -26,7 +26,6 @@ import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
-import org.apache.camel.support.SynchronousDelegateProducer;
 import org.eclipse.jetty.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +39,21 @@ public class SalesforceEndpoint extends DefaultEndpoint {
 
     private static final Logger LOG = LoggerFactory.getLogger(SalesforceEndpoint.class);
 
-    @UriPath(label = "producer", description = "The operation to use", enums = "getVersions,getResources,"
-                                                                               + "getGlobalObjects,getBasicInfo,getDescription,getSObject,createSObject,updateSObject,deleteSObject,"
-                                                                               + "getSObjectWithId,upsertSObject,deleteSObjectWithId,getBlobField,query,queryMore,queryAll,search,apexCall,"
-                                                                               + "recent,createJob,getJob,closeJob,abortJob,createBatch,getBatch,getAllBatches,getRequest,getResults,"
-                                                                               + "createBatchQuery,getQueryResultIds,getQueryResult,getRecentReports,getReportDescription,executeSyncReport,"
-                                                                               + "executeAsyncReport,getReportInstances,getReportResults,limits,approval,approvals,composite-tree,"
-                                                                               + "composite-batch,composite")
+    //CHECKSTYLE:OFF
+    @UriPath(label = "producer", description = "The operation to use", enums = "getVersions,"
+            + "getResources,getGlobalObjects,getBasicInfo,getDescription,getSObject,createSObject,"
+            + "updateSObject,deleteSObject,getSObjectWithId,upsertSObject,deleteSObjectWithId,"
+            + "getBlobField,query,queryMore,queryAll,search,apexCall,recent,createJob,getJob,"
+            + "closeJob,abortJob,createBatch,getBatch,getAllBatches,getRequest,getResults,"
+            + "createBatchQuery,getQueryResultIds,getQueryResult,getRecentReports,"
+            + "getReportDescription,executeSyncReport,executeAsyncReport,getReportInstances,"
+            + "getReportResults,limits,approval,approvals,composite-tree,composite-batch,composite,"
+            + "bulk2GetAllJobs,bulk2CreateJob,bulk2GetJob,bulk2CreateBatch,bulk2CloseJob,"
+            + "bulk2AbortJob,bulk2DeleteJob,bulk2GetSuccessfulResults,bulk2GetFailedResults,"
+            + "bulk2GetUnprocessedRecords,bulk2CreateQueryJob,bulk2GetQueryJob,"
+            + "bulk2GetAllQueryJobs,bulk2GetQueryJobResults,bulk2AbortQueryJob,bulk2DeleteQueryJob")
     private final OperationName operationName;
+    //CHECKSTYLE:ON
     @UriPath(label = "consumer", description = "The name of the topic/channel to use")
     private final String topicName;
     @UriParam
@@ -73,12 +79,7 @@ public class SalesforceEndpoint extends DefaultEndpoint {
             throw new IllegalArgumentException(String.format("Invalid Operation %s", topicName));
         }
 
-        SalesforceProducer producer = new SalesforceProducer(this);
-        if (isSynchronous()) {
-            return new SynchronousDelegateProducer(producer);
-        } else {
-            return producer;
-        }
+        return new SalesforceProducer(this);
     }
 
     @Override

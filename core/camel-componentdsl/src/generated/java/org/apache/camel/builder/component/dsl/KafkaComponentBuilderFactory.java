@@ -1371,6 +1371,41 @@ public interface KafkaComponentBuilderFactory {
             return this;
         }
         /**
+         * Factory to use for creating
+         * org.apache.kafka.clients.consumer.KafkaConsumer and
+         * org.apache.kafka.clients.producer.KafkaProducer instances. This
+         * allows to configure a custom factory to create instances with logic
+         * that extends the vanilla Kafka clients.
+         * 
+         * The option is a:
+         * &lt;code&gt;org.apache.camel.component.kafka.KafkaClientFactory&lt;/code&gt; type.
+         * 
+         * Group: advanced
+         * 
+         * @param kafkaClientFactory the value to set
+         * @return the dsl builder
+         */
+        default KafkaComponentBuilder kafkaClientFactory(
+                org.apache.camel.component.kafka.KafkaClientFactory kafkaClientFactory) {
+            doSetProperty("kafkaClientFactory", kafkaClientFactory);
+            return this;
+        }
+        /**
+         * Sets whether synchronous processing should be strictly used.
+         * 
+         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
+         * 
+         * Default: false
+         * Group: advanced
+         * 
+         * @param synchronous the value to set
+         * @return the dsl builder
+         */
+        default KafkaComponentBuilder synchronous(boolean synchronous) {
+            doSetProperty("synchronous", synchronous);
+            return this;
+        }
+        /**
          * URL of the Confluent Platform schema registry servers to use. The
          * format is host1:port1,host2:port2. This is known as
          * schema.registry.url in the Confluent Platform documentation. This
@@ -1929,6 +1964,8 @@ public interface KafkaComponentBuilderFactory {
             case "workerPoolCoreSize": getOrCreateConfiguration((KafkaComponent) component).setWorkerPoolCoreSize((java.lang.Integer) value); return true;
             case "workerPoolMaxSize": getOrCreateConfiguration((KafkaComponent) component).setWorkerPoolMaxSize((java.lang.Integer) value); return true;
             case "autowiredEnabled": ((KafkaComponent) component).setAutowiredEnabled((boolean) value); return true;
+            case "kafkaClientFactory": ((KafkaComponent) component).setKafkaClientFactory((org.apache.camel.component.kafka.KafkaClientFactory) value); return true;
+            case "synchronous": getOrCreateConfiguration((KafkaComponent) component).setSynchronous((boolean) value); return true;
             case "schemaRegistryURL": getOrCreateConfiguration((KafkaComponent) component).setSchemaRegistryURL((java.lang.String) value); return true;
             case "interceptorClasses": getOrCreateConfiguration((KafkaComponent) component).setInterceptorClasses((java.lang.String) value); return true;
             case "kerberosBeforeReloginMinTime": getOrCreateConfiguration((KafkaComponent) component).setKerberosBeforeReloginMinTime((java.lang.Integer) value); return true;

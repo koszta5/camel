@@ -19,6 +19,8 @@ package org.apache.camel.util;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 
 public final class PropertiesHelper {
 
@@ -30,6 +32,9 @@ public final class PropertiesHelper {
     }
 
     public static Map<String, Object> extractProperties(Map<String, Object> properties, String optionPrefix, boolean remove) {
+        if (properties == null) {
+            return new LinkedHashMap<>(0);
+        }
         Map<String, Object> rc = new LinkedHashMap<>(properties.size());
 
         for (Iterator<Map.Entry<String, Object>> it = properties.entrySet().iterator(); it.hasNext();) {
@@ -77,6 +82,28 @@ public final class PropertiesHelper {
         } else {
             return !properties.isEmpty();
         }
+    }
+
+    public static Properties asProperties(String... properties) {
+        if ((properties.length & 1) != 0) {
+            throw new InternalError("length is odd");
+        }
+
+        Properties answer = new Properties();
+        for (int i = 0; i < properties.length; i += 2) {
+            answer.setProperty(
+                    Objects.requireNonNull(properties[i]),
+                    Objects.requireNonNull(properties[i + 1]));
+        }
+
+        return answer;
+    }
+
+    public static Properties asProperties(Map<String, Object> properties) {
+        Properties answer = new Properties();
+        answer.putAll(properties);
+
+        return answer;
     }
 
 }

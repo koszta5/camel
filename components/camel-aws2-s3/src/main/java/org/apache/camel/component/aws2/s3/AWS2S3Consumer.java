@@ -46,8 +46,11 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest.Builder;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
@@ -71,15 +74,13 @@ public class AWS2S3Consumer extends ScheduledBatchPollingConsumer {
 
         if (getConfiguration().isMoveAfterRead()) {
             try {
-                ListObjectsRequest.Builder builder = ListObjectsRequest.builder();
-                builder.bucket(getConfiguration().getDestinationBucket());
-                builder.maxKeys(maxMessagesPerPoll);
-                getAmazonS3Client().listObjects(builder.build());
+                getAmazonS3Client()
+                        .headBucket(HeadBucketRequest.builder().bucket(getConfiguration().getDestinationBucket()).build());
                 LOG.trace("Bucket [{}] already exists", getConfiguration().getDestinationBucket());
                 return;
             } catch (AwsServiceException ase) {
                 /* 404 means the bucket doesn't exist */
-                if (ase.awsErrorDetails().errorCode().equalsIgnoreCase("404")) {
+                if (!(ase.awsErrorDetails().sdkHttpResponse().statusCode() == 404)) {
                     throw ase;
                 }
             }
@@ -110,9 +111,12 @@ public class AWS2S3Consumer extends ScheduledBatchPollingConsumer {
 
         String fileName = getConfiguration().getFileName();
         String bucketName = getConfiguration().getBucketName();
+        String doneFileName = getConfiguration().getDoneFileName();
         Queue<Exchange> exchanges;
 
-        if (fileName != null) {
+        if (!doneFileCheckPasses(bucketName, doneFileName)) {
+            exchanges = new LinkedList<>();
+        } else if (fileName != null) {
             LOG.trace("Getting object in bucket [{}] with file name [{}]...", bucketName, fileName);
 
             ResponseInputStream<GetObjectResponse> s3Object
@@ -154,6 +158,26 @@ public class AWS2S3Consumer extends ScheduledBatchPollingConsumer {
         return processBatch(CastUtils.cast(exchanges));
     }
 
+    private boolean doneFileCheckPasses(String bucketName, String doneFileName) {
+        if (doneFileName == null) {
+            return true;
+        } else {
+            return checkFileExists(bucketName, doneFileName);
+        }
+    }
+
+    private boolean checkFileExists(String bucketName, String doneFileName) {
+        HeadObjectRequest.Builder headObjectsRequest = HeadObjectRequest.builder();
+        headObjectsRequest.bucket(bucketName);
+        headObjectsRequest.key(doneFileName);
+        try {
+            getAmazonS3Client().headObject(headObjectsRequest.build());
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        }
+    }
+
     protected Queue<Exchange> createExchanges(ResponseInputStream<GetObjectResponse> s3Object, String key) {
         Queue<Exchange> answer = new LinkedList<>();
         Exchange exchange = getEndpoint().createExchange(s3Object, key);
@@ -191,12 +215,12 @@ public class AWS2S3Consumer extends ScheduledBatchPollingConsumer {
                     Exchange exchange = getEndpoint().createExchange(s3Object, s3ObjectSummary.key());
                     answer.add(exchange);
                 } else {
-                    // If includeFolders != true and the object is not included, it is safe to close the object here. 
+                    // If includeFolders != true and the object is not included, it is safe to close the object here.
                     // If includeFolders == true, the exchange will close the object.
                     IOHelper.close(s3Object);
                 }
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.warn("Error getting S3Object due: {}", e.getMessage(), e);
             // ensure all previous gathered s3 objects are closed
             // if there was an exception creating the exchanges in this batch

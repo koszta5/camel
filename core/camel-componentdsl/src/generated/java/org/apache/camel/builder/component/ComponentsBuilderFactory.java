@@ -315,6 +315,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsCwComponentBuilderFactory.AwsCwComponentBuilder awsCw() {
         return org.apache.camel.builder.component.dsl.AwsCwComponentBuilderFactory.awsCw();
     }
@@ -328,6 +329,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsDdbComponentBuilderFactory.AwsDdbComponentBuilder awsDdb() {
         return org.apache.camel.builder.component.dsl.AwsDdbComponentBuilderFactory.awsDdb();
     }
@@ -341,6 +343,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsDdbstreamComponentBuilderFactory.AwsDdbstreamComponentBuilder awsDdbstream() {
         return org.apache.camel.builder.component.dsl.AwsDdbstreamComponentBuilderFactory.awsDdbstream();
     }
@@ -354,6 +357,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsEc2ComponentBuilderFactory.AwsEc2ComponentBuilder awsEc2() {
         return org.apache.camel.builder.component.dsl.AwsEc2ComponentBuilderFactory.awsEc2();
     }
@@ -367,6 +371,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsEcsComponentBuilderFactory.AwsEcsComponentBuilder awsEcs() {
         return org.apache.camel.builder.component.dsl.AwsEcsComponentBuilderFactory.awsEcs();
     }
@@ -380,6 +385,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsEksComponentBuilderFactory.AwsEksComponentBuilder awsEks() {
         return org.apache.camel.builder.component.dsl.AwsEksComponentBuilderFactory.awsEks();
     }
@@ -393,6 +399,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsIamComponentBuilderFactory.AwsIamComponentBuilder awsIam() {
         return org.apache.camel.builder.component.dsl.AwsIamComponentBuilderFactory.awsIam();
     }
@@ -406,6 +413,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsKinesisComponentBuilderFactory.AwsKinesisComponentBuilder awsKinesis() {
         return org.apache.camel.builder.component.dsl.AwsKinesisComponentBuilderFactory.awsKinesis();
     }
@@ -419,6 +427,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsKinesisFirehoseComponentBuilderFactory.AwsKinesisFirehoseComponentBuilder awsKinesisFirehose() {
         return org.apache.camel.builder.component.dsl.AwsKinesisFirehoseComponentBuilderFactory.awsKinesisFirehose();
     }
@@ -432,6 +441,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsKmsComponentBuilderFactory.AwsKmsComponentBuilder awsKms() {
         return org.apache.camel.builder.component.dsl.AwsKmsComponentBuilderFactory.awsKms();
     }
@@ -445,6 +455,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsLambdaComponentBuilderFactory.AwsLambdaComponentBuilder awsLambda() {
         return org.apache.camel.builder.component.dsl.AwsLambdaComponentBuilderFactory.awsLambda();
     }
@@ -458,6 +469,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsMqComponentBuilderFactory.AwsMqComponentBuilder awsMq() {
         return org.apache.camel.builder.component.dsl.AwsMqComponentBuilderFactory.awsMq();
     }
@@ -471,6 +483,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsMskComponentBuilderFactory.AwsMskComponentBuilder awsMsk() {
         return org.apache.camel.builder.component.dsl.AwsMskComponentBuilderFactory.awsMsk();
     }
@@ -484,6 +497,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsS3ComponentBuilderFactory.AwsS3ComponentBuilder awsS3() {
         return org.apache.camel.builder.component.dsl.AwsS3ComponentBuilderFactory.awsS3();
     }
@@ -497,6 +511,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsSdbComponentBuilderFactory.AwsSdbComponentBuilder awsSdb() {
         return org.apache.camel.builder.component.dsl.AwsSdbComponentBuilderFactory.awsSdb();
     }
@@ -510,6 +525,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsSesComponentBuilderFactory.AwsSesComponentBuilder awsSes() {
         return org.apache.camel.builder.component.dsl.AwsSesComponentBuilderFactory.awsSes();
     }
@@ -523,6 +539,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsSnsComponentBuilderFactory.AwsSnsComponentBuilder awsSns() {
         return org.apache.camel.builder.component.dsl.AwsSnsComponentBuilderFactory.awsSns();
     }
@@ -536,6 +553,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsSqsComponentBuilderFactory.AwsSqsComponentBuilder awsSqs() {
         return org.apache.camel.builder.component.dsl.AwsSqsComponentBuilderFactory.awsSqs();
     }
@@ -549,6 +567,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsSwfComponentBuilderFactory.AwsSwfComponentBuilder awsSwf() {
         return org.apache.camel.builder.component.dsl.AwsSwfComponentBuilderFactory.awsSwf();
     }
@@ -562,6 +581,7 @@ public interface ComponentsBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static org.apache.camel.builder.component.dsl.AwsTranslateComponentBuilderFactory.AwsTranslateComponentBuilder awsTranslate() {
         return org.apache.camel.builder.component.dsl.AwsTranslateComponentBuilderFactory.awsTranslate();
     }
@@ -900,6 +920,19 @@ public interface ComponentsBuilderFactory {
      */
     static org.apache.camel.builder.component.dsl.AzureStorageBlobComponentBuilderFactory.AzureStorageBlobComponentBuilder azureStorageBlob() {
         return org.apache.camel.builder.component.dsl.AzureStorageBlobComponentBuilderFactory.azureStorageBlob();
+    }
+    /**
+     * Azure storage datalake service (camel-azure-storage-datalake)
+     * Camel Azure Datalake Gen2 Component
+     * 
+     * Category: cloud,file
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-azure-storage-datalake
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.AzureStorageDatalakeComponentBuilderFactory.AzureStorageDatalakeComponentBuilder azureStorageDatalake() {
+        return org.apache.camel.builder.component.dsl.AzureStorageDatalakeComponentBuilderFactory.azureStorageDatalake();
     }
     /**
      * Azure Storage Queue Service (camel-azure-storage-queue)
@@ -2242,6 +2275,19 @@ public interface ComponentsBuilderFactory {
         return org.apache.camel.builder.component.dsl.HttpsComponentBuilderFactory.https();
     }
     /**
+     * SimpleNotification (camel-huaweicloud-smn)
+     * Huawei Cloud component to integrate with SimpleNotification services
+     * 
+     * Category: cloud,messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-huaweicloud-smn
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.HwcloudSmnComponentBuilderFactory.HwcloudSmnComponentBuilder hwcloudSmn() {
+        return org.apache.camel.builder.component.dsl.HwcloudSmnComponentBuilderFactory.hwcloudSmn();
+    }
+    /**
      * IEC 60870 Client (camel-iec60870)
      * IEC 60870 supervisory control and data acquisition (SCADA) client using
      * NeoSCADA implementation.
@@ -2400,6 +2446,20 @@ public interface ComponentsBuilderFactory {
      */
     static org.apache.camel.builder.component.dsl.InfinispanComponentBuilderFactory.InfinispanComponentBuilder infinispan() {
         return org.apache.camel.builder.component.dsl.InfinispanComponentBuilderFactory.infinispan();
+    }
+    /**
+     * Infinispan Embedded (camel-infinispan-embedded)
+     * Read and write from/to Infinispan distributed key/value store and data
+     * grid.
+     * 
+     * Category: cache,datagrid,clustering
+     * Since: 2.13
+     * Maven coordinates: org.apache.camel:camel-infinispan-embedded
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.InfinispanEmbeddedComponentBuilderFactory.InfinispanEmbeddedComponentBuilder infinispanEmbedded() {
+        return org.apache.camel.builder.component.dsl.InfinispanEmbeddedComponentBuilderFactory.infinispanEmbedded();
     }
     /**
      * InfluxDB (camel-influxdb)
@@ -2730,6 +2790,20 @@ public interface ComponentsBuilderFactory {
      */
     static org.apache.camel.builder.component.dsl.KafkaComponentBuilderFactory.KafkaComponentBuilder kafka() {
         return org.apache.camel.builder.component.dsl.KafkaComponentBuilderFactory.kafka();
+    }
+    /**
+     * Kamelet (camel-kamelet)
+     * The Kamelet Component provides support for interacting with the Camel
+     * Route Template engine
+     * 
+     * Category: core
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-kamelet
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.KameletComponentBuilderFactory.KameletComponentBuilder kamelet() {
+        return org.apache.camel.builder.component.dsl.KameletComponentBuilderFactory.kamelet();
     }
     /**
      * Kubernetes ConfigMap (camel-kubernetes)
@@ -3517,6 +3591,19 @@ public interface ComponentsBuilderFactory {
         return org.apache.camel.builder.component.dsl.PahoComponentBuilderFactory.paho();
     }
     /**
+     * Paho MQTT 5 (camel-paho-mqtt5)
+     * Communicate with MQTT message brokers using Eclipse Paho MQTT v5 Client.
+     * 
+     * Category: messaging,iot
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-paho-mqtt5
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.PahoMqtt5ComponentBuilderFactory.PahoMqtt5ComponentBuilder pahoMqtt5() {
+        return org.apache.camel.builder.component.dsl.PahoMqtt5ComponentBuilderFactory.pahoMqtt5();
+    }
+    /**
      * PDF (camel-pdf)
      * Create, modify or extract content from PDF documents.
      * 
@@ -4214,6 +4301,19 @@ public interface ComponentsBuilderFactory {
         return org.apache.camel.builder.component.dsl.SpringLdapComponentBuilderFactory.springLdap();
     }
     /**
+     * Spring RabbitMQ (camel-spring-rabbitmq)
+     * Send and receive messages from RabbitMQ using Spring RabbitMQ client.
+     * 
+     * Category: messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-spring-rabbitmq
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.SpringRabbitmqComponentBuilderFactory.SpringRabbitmqComponentBuilder springRabbitmq() {
+        return org.apache.camel.builder.component.dsl.SpringRabbitmqComponentBuilderFactory.springRabbitmq();
+    }
+    /**
      * Spring Redis (camel-spring-redis)
      * Send and receive messages from Redis.
      * 
@@ -4290,6 +4390,20 @@ public interface ComponentsBuilderFactory {
      */
     static org.apache.camel.builder.component.dsl.StaxComponentBuilderFactory.StaxComponentBuilder stax() {
         return org.apache.camel.builder.component.dsl.StaxComponentBuilderFactory.stax();
+    }
+    /**
+     * Stitch (camel-stitch)
+     * Stitch is a cloud ETL service that integrates various data sources into a
+     * central data warehouse through various integrations.
+     * 
+     * Category: cloud,api,compute,bigdata
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-stitch
+     * 
+     * @return the dsl builder
+     */
+    static org.apache.camel.builder.component.dsl.StitchComponentBuilderFactory.StitchComponentBuilder stitch() {
+        return org.apache.camel.builder.component.dsl.StitchComponentBuilderFactory.stitch();
     }
     /**
      * Stomp (camel-stomp)

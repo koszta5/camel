@@ -88,14 +88,14 @@ public class EndpointMessageListener implements SessionAwareMessageListener {
                 try {
                     exchange.getIn().getBody();
                     exchange.getIn().getHeaders();
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     // any problems with eager loading then set an exception so Camel error handler can react
                     exchange.setException(e);
                     String text = eagerPoisonBody;
                     try {
                         text = endpoint.getCamelContext().resolveLanguage("simple")
                                 .createExpression(eagerPoisonBody).evaluate(exchange, String.class);
-                    } catch (Throwable t) {
+                    } catch (Exception t) {
                         // ignore
                     }
                     exchange.getIn().setBody(text);
@@ -120,7 +120,7 @@ public class EndpointMessageListener implements SessionAwareMessageListener {
             // (eg to not consume the next message before the previous has been fully processed)
             // but if end user explicit configure consumerAsync=true, then we can process the message
             // asynchronously (unless endpoint has been configured synchronous, or we use transaction)
-            boolean forceSync = endpoint.isSynchronous() || endpoint.isTransacted();
+            boolean forceSync = endpoint.getConfiguration().isSynchronous() || endpoint.isTransacted();
             if (forceSync || !isAsync()) {
                 // must process synchronous if transacted or configured to do so
                 if (LOG.isTraceEnabled()) {

@@ -23,6 +23,8 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "additionalproperties":
         case "additionalProperties": target.getConfiguration().setAdditionalProperties(property(camelContext, java.util.Map.class, value)); return true;
+        case "binaryhandlingmode":
+        case "binaryHandlingMode": target.getConfiguration().setBinaryHandlingMode(property(camelContext, java.lang.String.class, value)); return true;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
         case "columnblacklist":
@@ -140,7 +142,6 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         case "sourceStructVersion": target.getConfiguration().setSourceStructVersion(property(camelContext, java.lang.String.class, value)); return true;
         case "sourcetimestampmode":
         case "sourceTimestampMode": target.getConfiguration().setSourceTimestampMode(property(camelContext, java.lang.String.class, value)); return true;
-        case "synchronous": target.setSynchronous(property(camelContext, boolean.class, value)); return true;
         case "tableblacklist":
         case "tableBlacklist": target.getConfiguration().setTableBlacklist(property(camelContext, java.lang.String.class, value)); return true;
         case "tableexcludelist":
@@ -164,6 +165,8 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "additionalproperties":
         case "additionalProperties": return java.util.Map.class;
+        case "binaryhandlingmode":
+        case "binaryHandlingMode": return java.lang.String.class;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return boolean.class;
         case "columnblacklist":
@@ -281,7 +284,6 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         case "sourceStructVersion": return java.lang.String.class;
         case "sourcetimestampmode":
         case "sourceTimestampMode": return java.lang.String.class;
-        case "synchronous": return boolean.class;
         case "tableblacklist":
         case "tableBlacklist": return java.lang.String.class;
         case "tableexcludelist":
@@ -306,6 +308,8 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "additionalproperties":
         case "additionalProperties": return target.getConfiguration().getAdditionalProperties();
+        case "binaryhandlingmode":
+        case "binaryHandlingMode": return target.getConfiguration().getBinaryHandlingMode();
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return target.isBridgeErrorHandler();
         case "columnblacklist":
@@ -423,7 +427,6 @@ public class DebeziumSqlserverEndpointConfigurer extends PropertyConfigurerSuppo
         case "sourceStructVersion": return target.getConfiguration().getSourceStructVersion();
         case "sourcetimestampmode":
         case "sourceTimestampMode": return target.getConfiguration().getSourceTimestampMode();
-        case "synchronous": return target.isSynchronous();
         case "tableblacklist":
         case "tableBlacklist": return target.getConfiguration().getTableBlacklist();
         case "tableexcludelist":

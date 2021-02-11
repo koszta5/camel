@@ -48,7 +48,7 @@ pattern. See further below.
 [TIP]
 ====
 This component can be used as a
-xref:eips:transactional-client.adoc[Transactional Client].
+xref:{eip-vc}:eips:transactional-client.adoc[Transactional Client].
 ====
 
 The SQL component uses the following endpoint URI notation:
@@ -156,14 +156,14 @@ with the following path and query parameters:
 |===
 
 
-=== Query Parameters (47 parameters):
+=== Query Parameters (46 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
 |===
 | Name | Description | Default | Type
 | *allowNamedParameters* (common) | Whether to allow using named parameters in the queries. | true | boolean
-| *dataSource* (common) | Sets the DataSource to use to communicate with the database. |  | DataSource
+| *dataSource* (common) | Sets the DataSource to use to communicate with the databaset at endpoint level. |  | DataSource
 | *dataSourceRef* (common) | *Deprecated* Sets the reference to a DataSource to lookup from the registry, to use for communicating with the database. |  | String
 | *outputClass* (common) | Specify the full package and class name to use as conversion when outputType=SelectOne. |  | String
 | *outputHeader* (common) | Store the query result in a header instead of the message body. By default, outputHeader == null and the query result is stored in the message body, any existing content in the message body is discarded. If outputHeader is set, the value is used as the name of the header to store the query result and the original message body is preserved. |  | String
@@ -192,7 +192,6 @@ with the following path and query parameters:
 | *parametersCount* (advanced) | If set greater than zero, then Camel will use this count value of parameters to replace instead of querying via JDBC metadata API. This is useful if the JDBC vendor could not return correct parameters count, then user may override instead. |  | int
 | *placeholder* (advanced) | Specifies a character that will be replaced to in SQL query. Notice, that it is simple String.replaceAll() operation and no SQL parsing is involved (quoted strings will also change). | # | String
 | *prepareStatementStrategy* (advanced) | Allows to plugin to use a custom org.apache.camel.component.sql.SqlPrepareStatementStrategy to control preparation of the query and prepared statement. |  | SqlPrepareStatementStrategy
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 | *templateOptions* (advanced) | Configures the Spring JdbcTemplate with the key/values from the Map |  | Map
 | *usePlaceholder* (advanced) | Sets whether to use placeholder and replace all placeholder characters with sign in the SQL queries. | true | boolean
 | *backoffErrorThreshold* (scheduler) | The number of subsequent error polls (failed due some error) that should happen before the backoffMultipler should kick-in. |  | int

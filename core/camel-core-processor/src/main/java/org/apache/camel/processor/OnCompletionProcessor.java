@@ -16,6 +16,8 @@
  */
 package org.apache.camel.processor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -250,10 +252,33 @@ public class OnCompletionProcessor extends AsyncProcessorSupport implements Trac
         }
 
         @Override
+        @SuppressWarnings("unchecked")
+        public void onAfterRoute(Route route, Exchange exchange) {
+            // route scope = remember we have been at this route
+            if (routeScoped && route.getRouteId().equals(routeId)) {
+                List<String> routeIds = exchange.getProperty(Exchange.ON_COMPLETION_ROUTE_IDS, List.class);
+                if (routeIds == null) {
+                    routeIds = new ArrayList<>();
+                    exchange.setProperty(Exchange.ON_COMPLETION_ROUTE_IDS, routeIds);
+                }
+                routeIds.add(route.getRouteId());
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
         public void onComplete(final Exchange exchange) {
             String currentRouteId = ExchangeHelper.getRouteId(exchange);
-            if (currentRouteId != null && !routeId.equals(currentRouteId)) {
+            if (!routeScoped && currentRouteId != null && !routeId.equals(currentRouteId)) {
                 return;
+            }
+
+            if (routeScoped) {
+                // check if we visited the route
+                List<String> routeIds = exchange.getProperty(Exchange.ON_COMPLETION_ROUTE_IDS, List.class);
+                if (routeIds == null || !routeIds.contains(routeId)) {
+                    return;
+                }
             }
 
             if (onFailureOnly) {

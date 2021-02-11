@@ -27,7 +27,6 @@ public class AWS2S3EndpointUriFactory extends org.apache.camel.support.component
         props.add("bucketNameOrArn");
         props.add("customerKeyId");
         props.add("prefix");
-        props.add("synchronous");
         props.add("useAwsKMS");
         props.add("initialDelay");
         props.add("pojoRequest");
@@ -63,6 +62,7 @@ public class AWS2S3EndpointUriFactory extends org.apache.camel.support.component
         props.add("multiPartUpload");
         props.add("storageClass");
         props.add("useFixedDelay");
+        props.add("doneFileName");
         props.add("runLoggingLevel");
         props.add("backoffErrorThreshold");
         props.add("policy");

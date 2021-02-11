@@ -178,7 +178,42 @@ list of errors while creating the new object.
 ...to("salesforce:upsertSObject?sObjectIdName=Name")...
 ----
 
-=== Rest Bulk API
+=== Bulk 2.0 API
+
+The Bulk 2.0 API has a simplified model over the original Bulk API. Use it to quickly load a large
+amount of data into salesforce, or query a large amount of data out of salesforce. Data must be
+provided in CSV format. The minimum API version for Bulk 2.0 is v41.0. The minimum API version for
+Bulk Queries is v47.0. DTO classes mentioned below are from the
+`org.apache.camel.component.salesforce.api.dto.bulkv2` package. The following operations are supported:
+
+* *bulk2CreateJob* - Create a bulk job. Supply an instance of `Job` in the message body.
+* *bulk2GetJob* - Get an existing Job. `jobId` parameter is required.
+* *bulk2CreateBatch* - Add a Batch of CSV records to a job. Supply CSV data in the message body.
+The first row must contain headers. `jobId` parameter is required.
+* *bulk2CloseJob* - Close a job. You must close the job in order for it to be processed or
+aborted/deleted. `jobId` parameter is required.
+* *bulk2AbortJob* - Abort a job. `jobId` parameter is required.
+* *bulk2DeleteJob* - Delete a job. `jobId` parameter is required.
+* *bulk2GetSuccessfulResults* - Get successful results for a job. Returned message body will contain
+an InputStream of CSV data. `jobId` parameter is required.
+* *bulk2GetFailedResults* - Get failed results for a job. Returned message body will contain an
+InputStream of CSV data. `jobId` parameter is required.
+* *bulk2GetUnprocessedRecords* - Get unprocessed records for a job. Returned message body will
+contain an InputStream of CSV data. `jobId` parameter is required.
+* *bulk2GetAllJobs* - Get all jobs. Response body is an instance of `Jobs`. If the `done` property
+is false, there are additional pages to fetch, and the `nextRecordsUrl` property contains the value
+to be set in the `queryLocator` parameter on subsequent calls.
+* *bulk2CreateQueryJob* - Create a bulk query job. Supply an instance of `QueryJob` in the message
+body.
+* *bulk2GetQueryJob* - Get a bulk query job. `jobId` parameter is required.
+* *bulk2GetQueryJobResults* - Get bulk query job results. `jobId` parameter is required.
+* *bulk2AbortQueryJob* - Abort a bulk query job. `jobId` parameter is required.
+* *bulk2DeleteQueryJob* - Delete a bulk query job. `jobId` parameter is required.
+* *bulk2GetAllQueryJobs* - Get all jobs. Response body is an instance of `QueryJobs`. If the `done`
+property is false, there are additional pages to fetch, and the `nextRecordsUrl` property contains
+the value to be set in the `queryLocator` parameter on subsequent calls.
+
+=== Rest Bulk (original) API
 
 Producer endpoints can use the following APIs. All Job data formats,
 i.e. xml, csv, zip/xml, and zip/csv are supported.  +
@@ -190,24 +225,25 @@ request.
 
 You can use the following for `operationName`:
 
-* createJob - Creates a Salesforce Bulk Job
-* getJob - Gets a Job using its Salesforce Id
-* closeJob - Closes a Job
-* abortJob - Aborts a Job
-* createBatch - Submits a Batch within a Bulk Job
-* getBatch - Gets a Batch using Id
-* getAllBatches - Gets all Batches for a Bulk Job Id
-* getRequest - Gets Request data (XML/CSV) for a Batch
-* getResults - Gets the results of the Batch when its complete
-* createBatchQuery - Creates a Batch from an SOQL query
-* getQueryResultIds - Gets a list of Result Ids for a Batch Query
-* getQueryResult - Gets results for a Result Id
-* getRecentReports - Gets up to 200 of the reports you most recently viewed by sending a GET request to the Report List resource.
-* getReportDescription - Retrieves the report, report type, and related metadata for a report, either in a tabular or summary or matrix format.
-* executeSyncReport - Runs a report synchronously with or without changing filters and returns the latest summary data.
-* executeAsyncReport - Runs an instance of a report asynchronously with or without filters and returns the summary data with or without details.
-* getReportInstances - Returns a list of instances for a report that you requested to be run asynchronously. Each item in the list is treated as a separate instance of the report.
-* getReportResults: Contains the results of running a report.
+* *createJob* - Creates a Salesforce Bulk Job. Must supply a `JobInfo` instance in body. PK Chunking
+is supported via the pkChunking* options. See an explanation https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/async_api_headers_enable_pk_chunking.htm[here].
+* *getJob* - Gets a Job using its Salesforce Id
+* *closeJob* - Closes a Job
+* *abortJob* - Aborts a Job
+* *createBatch* - Submits a Batch within a Bulk Job
+* *getBatch* - Gets a Batch using Id
+* *getAllBatches* - Gets all Batches for a Bulk Job Id
+* *getRequest* - Gets Request data (XML/CSV) for a Batch
+* *getResults* - Gets the results of the Batch when its complete
+* *createBatchQuery* - Creates a Batch from an SOQL query
+* *getQueryResultIds* - Gets a list of Result Ids for a Batch Query
+* *getQueryResult* - Gets results for a Result Id
+* *getRecentReports* - Gets up to 200 of the reports you most recently viewed by sending a GET request to the Report List resource.
+* *getReportDescription* - Retrieves the report, report type, and related metadata for a report, either in a tabular or summary or matrix format.
+* *executeSyncReport* - Runs a report synchronously with or without changing filters and returns the latest summary data.
+* *executeAsyncReport* - Runs an instance of a report asynchronously with or without filters and returns the summary data with or without details.
+* *getReportInstances* - Returns a list of instances for a report that you requested to be run asynchronously. Each item in the list is treated as a separate instance of the report.
+* *getReportResults*: Contains the results of running a report.
 
 For example, the following producer endpoint uses the createBatch API to
 create a Job Batch. The in message must contain a body that can be converted into an
@@ -219,7 +255,7 @@ error.
 
 [source,java]
 ----
-...to("salesforce:createBatchJob")..
+...to("salesforce:createBatch")..
 ----
 
 === Rest Streaming API
@@ -621,7 +657,7 @@ from("timer:fire?period=2000").setBody(constant("{\n" +
      "   \"ExternalID\" : \"EXTERNAL\"\n"
      " }]\n" +
      "}")
-   .to("salesforce:composite?rawPayload=true&sObjectName=FOO&sObjectIdName=EXTERNAL&compositeMethod=PATCH")
+   .to("salesforce:composite?rawPayload=true")
    .log("${body}");
 ----
 
@@ -629,7 +665,10 @@ The route directly creates the body as JSON and directly submit to salesforce en
 
 With this approach, you have the complete control on the Salesforce request.
 
-The `compositeMethod` option allows you to define the Salesforce client method style (PATCH, PUT, POST, ...).
+`POST` is the default HTTP method used to send raw Composite requests to salesforce. Use the
+`compositeMethod` option to override to the other supported value, `GET`, which returns a list of
+other available composite resources.
+
 
 ==  Sending null values to salesforce
 
@@ -685,7 +724,7 @@ for details on how to generate the DTO.
 
 
 // component options: START
-The Salesforce component supports 74 options, which are listed below.
+The Salesforce component supports 79 options, which are listed below.
 
 
 
@@ -720,6 +759,11 @@ The Salesforce component supports 74 options, which are listed below.
 | *notifyForOperationUpdate* (common) | Notify for update operation, defaults to false (API version = 29.0) |  | Boolean
 | *objectMapper* (common) | Custom Jackson ObjectMapper to use when serializing/deserializing Salesforce objects. |  | ObjectMapper
 | *packages* (common) | In what packages are the generated DTO classes. Typically the classes would be generated using camel-salesforce-maven-plugin. This must be set if using the XML format. Also, set it if using the generated DTOs to gain the benefit of using short SObject names in parameters/header values. Multiple packages can be separated by comma. |  | String
+| *pkChunking* (common) | Use PK Chunking. Only for use in original Bulk API. Bulk 2.0 API performs PK chunking automatically, if necessary. |  | Boolean
+| *pkChunkingChunkSize* (common) | Chunk size for use with PK Chunking. If unspecified, salesforce default is 100,000. Maximum size is 250,000. |  | Integer
+| *pkChunkingParent* (common) | Specifies the parent object when you're enabling PK chunking for queries on sharing objects. The chunks are based on the parent object's records rather than the sharing object's records. For example, when querying on AccountShare, specify Account as the parent object. PK chunking is supported for sharing objects as long as the parent object is supported. |  | String
+| *pkChunkingStartRow* (common) | Specifies the 15-character or 18-character record ID to be used as the lower boundary for the first chunk. Use this parameter to specify a starting ID when restarting a job that failed between batches. |  | String
+| *queryLocator* (common) | Query Locator provided by salesforce for use when a query results in more records than can be retrieved in a single call. Use this value in a subsequent call to retrieve additional records. |  | String
 | *rawPayload* (common) | Use raw payload String for request and response (either JSON or XML depending on format), instead of DTOs, false by default | false | boolean
 | *reportId* (common) | Salesforce1 Analytics report Id |  | String
 | *reportMetadata* (common) | Salesforce1 Analytics report metadata for filtering |  | ReportMetadata
@@ -793,12 +837,12 @@ with the following path and query parameters:
 [width="100%",cols="2,5,^1,2",options="header"]
 |===
 | Name | Description | Default | Type
-| *operationName* | The operation to use. There are 43 enums and the value can be one of: getVersions, getResources, getGlobalObjects, getBasicInfo, getDescription, getSObject, createSObject, updateSObject, deleteSObject, getSObjectWithId, upsertSObject, deleteSObjectWithId, getBlobField, query, queryMore, queryAll, search, apexCall, recent, createJob, getJob, closeJob, abortJob, createBatch, getBatch, getAllBatches, getRequest, getResults, createBatchQuery, getQueryResultIds, getQueryResult, getRecentReports, getReportDescription, executeSyncReport, executeAsyncReport, getReportInstances, getReportResults, limits, approval, approvals, composite-tree, composite-batch, composite |  | OperationName
+| *operationName* | The operation to use. There are 59 enums and the value can be one of: getVersions, getResources, getGlobalObjects, getBasicInfo, getDescription, getSObject, createSObject, updateSObject, deleteSObject, getSObjectWithId, upsertSObject, deleteSObjectWithId, getBlobField, query, queryMore, queryAll, search, apexCall, recent, createJob, getJob, closeJob, abortJob, createBatch, getBatch, getAllBatches, getRequest, getResults, createBatchQuery, getQueryResultIds, getQueryResult, getRecentReports, getReportDescription, executeSyncReport, executeAsyncReport, getReportInstances, getReportResults, limits, approval, approvals, composite-tree, composite-batch, composite, bulk2GetAllJobs, bulk2CreateJob, bulk2GetJob, bulk2CreateBatch, bulk2CloseJob, bulk2AbortJob, bulk2DeleteJob, bulk2GetSuccessfulResults, bulk2GetFailedResults, bulk2GetUnprocessedRecords, bulk2CreateQueryJob, bulk2GetQueryJob, bulk2GetAllQueryJobs, bulk2GetQueryJobResults, bulk2AbortQueryJob, bulk2DeleteQueryJob |  | OperationName
 | *topicName* | The name of the topic/channel to use |  | String
 |===
 
 
-=== Query Parameters (45 parameters):
+=== Query Parameters (49 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
@@ -827,6 +871,11 @@ with the following path and query parameters:
 | *notifyForOperationUndelete* (common) | Notify for un-delete operation, defaults to false (API version = 29.0) |  | Boolean
 | *notifyForOperationUpdate* (common) | Notify for update operation, defaults to false (API version = 29.0) |  | Boolean
 | *objectMapper* (common) | Custom Jackson ObjectMapper to use when serializing/deserializing Salesforce objects. |  | ObjectMapper
+| *pkChunking* (common) | Use PK Chunking. Only for use in original Bulk API. Bulk 2.0 API performs PK chunking automatically, if necessary. |  | Boolean
+| *pkChunkingChunkSize* (common) | Chunk size for use with PK Chunking. If unspecified, salesforce default is 100,000. Maximum size is 250,000. |  | Integer
+| *pkChunkingParent* (common) | Specifies the parent object when you're enabling PK chunking for queries on sharing objects. The chunks are based on the parent object's records rather than the sharing object's records. For example, when querying on AccountShare, specify Account as the parent object. PK chunking is supported for sharing objects as long as the parent object is supported. |  | String
+| *pkChunkingStartRow* (common) | Specifies the 15-character or 18-character record ID to be used as the lower boundary for the first chunk. Use this parameter to specify a starting ID when restarting a job that failed between batches. |  | String
+| *queryLocator* (common) | Query Locator provided by salesforce for use when a query results in more records than can be retrieved in a single call. Use this value in a subsequent call to retrieve additional records. |  | String
 | *rawPayload* (common) | Use raw payload String for request and response (either JSON or XML depending on format), instead of DTOs, false by default | false | boolean
 | *reportId* (common) | Salesforce1 Analytics report Id |  | String
 | *reportMetadata* (common) | Salesforce1 Analytics report metadata for filtering |  | ReportMetadata
@@ -848,7 +897,6 @@ with the following path and query parameters:
 | *apexUrl* (producer) | APEX method URL |  | String
 | *compositeMethod* (producer) | Composite (raw) method. |  | String
 | *lazyStartProducer* (producer) | Whether the producer should be started lazy (on the first message). By starting lazy you can use this to allow CamelContext and routes to startup in situations where a producer may otherwise fail during starting and cause the route to fail being started. By deferring this startup to be lazy then the startup failure can be handled during routing messages via Camel's routing error handlers. Beware that when the first message is processed then creating and starting the producer may take a little time and prolong the total processing time of the processing. | false | boolean
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 |===
 // endpoint options: END
 

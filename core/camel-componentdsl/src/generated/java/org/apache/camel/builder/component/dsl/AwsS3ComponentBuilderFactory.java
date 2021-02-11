@@ -40,6 +40,7 @@ public interface AwsS3ComponentBuilderFactory {
      * 
      * @return the dsl builder
      */
+    @Deprecated
     static AwsS3ComponentBuilder awsS3() {
         return new AwsS3ComponentBuilderImpl();
     }
@@ -327,6 +328,20 @@ public interface AwsS3ComponentBuilderFactory {
          */
         default AwsS3ComponentBuilder delimiter(java.lang.String delimiter) {
             doSetProperty("delimiter", delimiter);
+            return this;
+        }
+        /**
+         * If provided, Camel will only consume files if a done file exists.
+         * 
+         * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
+         * 
+         * Group: consumer
+         * 
+         * @param doneFileName the value to set
+         * @return the dsl builder
+         */
+        default AwsS3ComponentBuilder doneFileName(java.lang.String doneFileName) {
+            doSetProperty("doneFileName", doneFileName);
             return this;
         }
         /**
@@ -730,6 +745,7 @@ public interface AwsS3ComponentBuilderFactory {
             case "bridgeErrorHandler": ((S3Component) component).setBridgeErrorHandler((boolean) value); return true;
             case "deleteAfterRead": getOrCreateConfiguration((S3Component) component).setDeleteAfterRead((boolean) value); return true;
             case "delimiter": getOrCreateConfiguration((S3Component) component).setDelimiter((java.lang.String) value); return true;
+            case "doneFileName": getOrCreateConfiguration((S3Component) component).setDoneFileName((java.lang.String) value); return true;
             case "fileName": getOrCreateConfiguration((S3Component) component).setFileName((java.lang.String) value); return true;
             case "includeBody": getOrCreateConfiguration((S3Component) component).setIncludeBody((boolean) value); return true;
             case "prefix": getOrCreateConfiguration((S3Component) component).setPrefix((java.lang.String) value); return true;

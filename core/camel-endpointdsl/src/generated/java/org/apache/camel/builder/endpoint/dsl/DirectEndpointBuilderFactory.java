@@ -168,8 +168,12 @@ public interface DirectEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -185,8 +189,12 @@ public interface DirectEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
@@ -374,8 +382,12 @@ public interface DirectEndpointBuilderFactory {
             return (DirectEndpointProducerBuilder) this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -391,8 +403,12 @@ public interface DirectEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
@@ -433,8 +449,12 @@ public interface DirectEndpointBuilderFactory {
             return (DirectEndpointBuilder) this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -449,8 +469,12 @@ public interface DirectEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Whether synchronous processing is forced. If enabled then the
+         * producer thread, will be forced to wait until the message has been
+         * completed before the same thread will continue processing. If
+         * disabled (default) then the producer thread may be freed and can do
+         * other work while the message is continued processed by other threads
+         * (reactive).
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.

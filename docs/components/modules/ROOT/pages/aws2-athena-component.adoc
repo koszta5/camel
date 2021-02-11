@@ -130,7 +130,7 @@ with the following path and query parameters:
 |===
 
 
-=== Query Parameters (28 parameters):
+=== Query Parameters (27 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
@@ -163,7 +163,6 @@ with the following path and query parameters:
 | *waitTimeout* (producer) | Optional max wait time in millis to wait for a successful query completion. See the section 'Waiting for Query Completion and Retrying Failed Queries' to learn more. | 0 | long
 | *workGroup* (producer) | The workgroup to use for running the query. |  | String
 | *clientRequestToken* (advanced) | A unique string to ensure issues queries are idempotent. It is unlikely you will need to set this. |  | String
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 |===
 // endpoint options: END
 
@@ -513,12 +512,6 @@ from("direct:start")
 
 Caution: the preceding example would block indefinitely, however, if the query did not complete with a
 status of SUCCEEDED.
-
-== Automatic detection of AmazonAthena client in registry
-
-The component is capable of detecting the presence of an AmazonAthena bean in the registry.
-If it's the only instance of that type it will be used as the client and you won't have to define it as URI parameter, like the example above.
-This may be really useful for smarter configuration of the endpoint.
 
 == Dependencies
 

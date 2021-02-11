@@ -1847,6 +1847,7 @@ public class StaticEndpointBuilders {
      * @param path namespace
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.CwEndpointBuilderFactory.CwEndpointBuilder awsCw(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.CwEndpointBuilderFactory.endpointBuilder("aws-cw", path);
@@ -1869,6 +1870,7 @@ public class StaticEndpointBuilders {
      * @param path namespace
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.CwEndpointBuilderFactory.CwEndpointBuilder awsCw(
             String componentName,
             String path) {
@@ -1890,6 +1892,7 @@ public class StaticEndpointBuilders {
      * @param path tableName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.DdbEndpointBuilderFactory.DdbEndpointBuilder awsDdb(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.DdbEndpointBuilderFactory.endpointBuilder("aws-ddb", path);
@@ -1912,6 +1915,7 @@ public class StaticEndpointBuilders {
      * @param path tableName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.DdbEndpointBuilderFactory.DdbEndpointBuilder awsDdb(
             String componentName,
             String path) {
@@ -1933,6 +1937,7 @@ public class StaticEndpointBuilders {
      * @param path tableName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.DdbStreamEndpointBuilderFactory.DdbStreamEndpointBuilder awsDdbstream(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.DdbStreamEndpointBuilderFactory.endpointBuilder("aws-ddbstream", path);
@@ -1955,6 +1960,7 @@ public class StaticEndpointBuilders {
      * @param path tableName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.DdbStreamEndpointBuilderFactory.DdbStreamEndpointBuilder awsDdbstream(
             String componentName,
             String path) {
@@ -1976,6 +1982,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.EC2EndpointBuilderFactory.EC2EndpointBuilder awsEc2(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.EC2EndpointBuilderFactory.endpointBuilder("aws-ec2", path);
@@ -1998,6 +2005,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.EC2EndpointBuilderFactory.EC2EndpointBuilder awsEc2(
             String componentName,
             String path) {
@@ -2019,6 +2027,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.ECSEndpointBuilderFactory.ECSEndpointBuilder awsEcs(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.ECSEndpointBuilderFactory.endpointBuilder("aws-ecs", path);
@@ -2041,6 +2050,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.ECSEndpointBuilderFactory.ECSEndpointBuilder awsEcs(
             String componentName,
             String path) {
@@ -2062,6 +2072,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.EKSEndpointBuilderFactory.EKSEndpointBuilder awsEks(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.EKSEndpointBuilderFactory.endpointBuilder("aws-eks", path);
@@ -2084,6 +2095,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.EKSEndpointBuilderFactory.EKSEndpointBuilder awsEks(
             String componentName,
             String path) {
@@ -2105,6 +2117,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.IAMEndpointBuilderFactory.IAMEndpointBuilder awsIam(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.IAMEndpointBuilderFactory.endpointBuilder("aws-iam", path);
@@ -2127,6 +2140,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.IAMEndpointBuilderFactory.IAMEndpointBuilder awsIam(
             String componentName,
             String path) {
@@ -2148,6 +2162,7 @@ public class StaticEndpointBuilders {
      * @param path streamName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KinesisEndpointBuilderFactory.KinesisEndpointBuilder awsKinesis(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.KinesisEndpointBuilderFactory.endpointBuilder("aws-kinesis", path);
@@ -2170,6 +2185,7 @@ public class StaticEndpointBuilders {
      * @param path streamName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KinesisEndpointBuilderFactory.KinesisEndpointBuilder awsKinesis(
             String componentName,
             String path) {
@@ -2191,6 +2207,7 @@ public class StaticEndpointBuilders {
      * @param path streamName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KinesisFirehoseEndpointBuilderFactory.KinesisFirehoseEndpointBuilder awsKinesisFirehose(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.KinesisFirehoseEndpointBuilderFactory.endpointBuilder("aws-kinesis-firehose", path);
@@ -2213,6 +2230,7 @@ public class StaticEndpointBuilders {
      * @param path streamName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KinesisFirehoseEndpointBuilderFactory.KinesisFirehoseEndpointBuilder awsKinesisFirehose(
             String componentName,
             String path) {
@@ -2234,6 +2252,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KMSEndpointBuilderFactory.KMSEndpointBuilder awsKms(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.KMSEndpointBuilderFactory.endpointBuilder("aws-kms", path);
@@ -2256,6 +2275,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.KMSEndpointBuilderFactory.KMSEndpointBuilder awsKms(
             String componentName,
             String path) {
@@ -2277,6 +2297,7 @@ public class StaticEndpointBuilders {
      * @param path function
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.LambdaEndpointBuilderFactory.LambdaEndpointBuilder awsLambda(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.LambdaEndpointBuilderFactory.endpointBuilder("aws-lambda", path);
@@ -2299,6 +2320,7 @@ public class StaticEndpointBuilders {
      * @param path function
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.LambdaEndpointBuilderFactory.LambdaEndpointBuilder awsLambda(
             String componentName,
             String path) {
@@ -2320,6 +2342,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.MQEndpointBuilderFactory.MQEndpointBuilder awsMq(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.MQEndpointBuilderFactory.endpointBuilder("aws-mq", path);
@@ -2342,6 +2365,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.MQEndpointBuilderFactory.MQEndpointBuilder awsMq(
             String componentName,
             String path) {
@@ -2363,6 +2387,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.MSKEndpointBuilderFactory.MSKEndpointBuilder awsMsk(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.MSKEndpointBuilderFactory.endpointBuilder("aws-msk", path);
@@ -2385,6 +2410,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.MSKEndpointBuilderFactory.MSKEndpointBuilder awsMsk(
             String componentName,
             String path) {
@@ -2406,6 +2432,7 @@ public class StaticEndpointBuilders {
      * @param path //bucketNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.S3EndpointBuilderFactory.S3EndpointBuilder awsS3(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.S3EndpointBuilderFactory.endpointBuilder("aws-s3", path);
@@ -2428,6 +2455,7 @@ public class StaticEndpointBuilders {
      * @param path //bucketNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.S3EndpointBuilderFactory.S3EndpointBuilder awsS3(
             String componentName,
             String path) {
@@ -2449,6 +2477,7 @@ public class StaticEndpointBuilders {
      * @param path domainName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SdbEndpointBuilderFactory.SdbEndpointBuilder awsSdb(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.SdbEndpointBuilderFactory.endpointBuilder("aws-sdb", path);
@@ -2471,6 +2500,7 @@ public class StaticEndpointBuilders {
      * @param path domainName
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SdbEndpointBuilderFactory.SdbEndpointBuilder awsSdb(
             String componentName,
             String path) {
@@ -2492,6 +2522,7 @@ public class StaticEndpointBuilders {
      * @param path from
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SesEndpointBuilderFactory.SesEndpointBuilder awsSes(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.SesEndpointBuilderFactory.endpointBuilder("aws-ses", path);
@@ -2514,6 +2545,7 @@ public class StaticEndpointBuilders {
      * @param path from
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SesEndpointBuilderFactory.SesEndpointBuilder awsSes(
             String componentName,
             String path) {
@@ -2535,6 +2567,7 @@ public class StaticEndpointBuilders {
      * @param path topicNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SnsEndpointBuilderFactory.SnsEndpointBuilder awsSns(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.SnsEndpointBuilderFactory.endpointBuilder("aws-sns", path);
@@ -2557,6 +2590,7 @@ public class StaticEndpointBuilders {
      * @param path topicNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SnsEndpointBuilderFactory.SnsEndpointBuilder awsSns(
             String componentName,
             String path) {
@@ -2578,6 +2612,7 @@ public class StaticEndpointBuilders {
      * @param path queueNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SqsEndpointBuilderFactory.SqsEndpointBuilder awsSqs(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.SqsEndpointBuilderFactory.endpointBuilder("aws-sqs", path);
@@ -2600,6 +2635,7 @@ public class StaticEndpointBuilders {
      * @param path queueNameOrArn
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SqsEndpointBuilderFactory.SqsEndpointBuilder awsSqs(
             String componentName,
             String path) {
@@ -2622,6 +2658,7 @@ public class StaticEndpointBuilders {
      * @param path type
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SWFEndpointBuilderFactory.SWFEndpointBuilder awsSwf(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.SWFEndpointBuilderFactory.endpointBuilder("aws-swf", path);
@@ -2645,6 +2682,7 @@ public class StaticEndpointBuilders {
      * @param path type
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.SWFEndpointBuilderFactory.SWFEndpointBuilder awsSwf(
             String componentName,
             String path) {
@@ -2666,6 +2704,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.TranslateEndpointBuilderFactory.TranslateEndpointBuilder awsTranslate(
             String path) {
         return org.apache.camel.builder.endpoint.dsl.TranslateEndpointBuilderFactory.endpointBuilder("aws-translate", path);
@@ -2688,6 +2727,7 @@ public class StaticEndpointBuilders {
      * @param path label
      * @return the dsl builder
      */
+    @Deprecated
     public static org.apache.camel.builder.endpoint.dsl.TranslateEndpointBuilderFactory.TranslateEndpointBuilder awsTranslate(
             String componentName,
             String path) {
@@ -2886,6 +2926,55 @@ public class StaticEndpointBuilders {
             String componentName,
             String path) {
         return org.apache.camel.builder.endpoint.dsl.BlobEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
+     * Azure storage datalake service (camel-azure-storage-datalake)
+     * Camel Azure Datalake Gen2 Component
+     * 
+     * Category: cloud,file
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-azure-storage-datalake
+     * 
+     * Syntax: <code>azure-storage-datalake:accountName/fileSystemName</code>
+     * 
+     * Path parameter: accountName
+     * name of the azure account
+     * 
+     * Path parameter: fileSystemName
+     * name of filesystem to be used
+     * 
+     * @param path accountName/fileSystemName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.DataLakeEndpointBuilderFactory.DataLakeEndpointBuilder azureStorageDatalake(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.DataLakeEndpointBuilderFactory.endpointBuilder("azure-storage-datalake", path);
+    }
+    /**
+     * Azure storage datalake service (camel-azure-storage-datalake)
+     * Camel Azure Datalake Gen2 Component
+     * 
+     * Category: cloud,file
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-azure-storage-datalake
+     * 
+     * Syntax: <code>azure-storage-datalake:accountName/fileSystemName</code>
+     * 
+     * Path parameter: accountName
+     * name of the azure account
+     * 
+     * Path parameter: fileSystemName
+     * name of filesystem to be used
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path accountName/fileSystemName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.DataLakeEndpointBuilderFactory.DataLakeEndpointBuilder azureStorageDatalake(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.DataLakeEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
      * Azure Storage Queue Service (camel-azure-storage-queue)
@@ -7550,6 +7639,49 @@ public class StaticEndpointBuilders {
         return org.apache.camel.builder.endpoint.dsl.HttpEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
+     * SimpleNotification (camel-huaweicloud-smn)
+     * Huawei Cloud component to integrate with SimpleNotification services
+     * 
+     * Category: cloud,messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-huaweicloud-smn
+     * 
+     * Syntax: <code>hwcloud-smn:smnService</code>
+     * 
+     * Path parameter: smnService (required)
+     * Name of SMN service to invoke
+     * 
+     * @param path smnService
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.SimpleNotificationEndpointBuilderFactory.SimpleNotificationEndpointBuilder hwcloudSmn(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.SimpleNotificationEndpointBuilderFactory.endpointBuilder("hwcloud-smn", path);
+    }
+    /**
+     * SimpleNotification (camel-huaweicloud-smn)
+     * Huawei Cloud component to integrate with SimpleNotification services
+     * 
+     * Category: cloud,messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-huaweicloud-smn
+     * 
+     * Syntax: <code>hwcloud-smn:smnService</code>
+     * 
+     * Path parameter: smnService (required)
+     * Name of SMN service to invoke
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path smnService
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.SimpleNotificationEndpointBuilderFactory.SimpleNotificationEndpointBuilder hwcloudSmn(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.SimpleNotificationEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
      * IEC 60870 Client (camel-iec60870)
      * IEC 60870 supervisory control and data acquisition (SCADA) client using
      * NeoSCADA implementation.
@@ -8010,9 +8142,9 @@ public class StaticEndpointBuilders {
      * @param path cacheName
      * @return the dsl builder
      */
-    public static org.apache.camel.builder.endpoint.dsl.InfinispanEndpointBuilderFactory.InfinispanEndpointBuilder infinispan(
+    public static org.apache.camel.builder.endpoint.dsl.InfinispanRemoteEndpointBuilderFactory.InfinispanRemoteEndpointBuilder infinispan(
             String path) {
-        return org.apache.camel.builder.endpoint.dsl.InfinispanEndpointBuilderFactory.endpointBuilder("infinispan", path);
+        return org.apache.camel.builder.endpoint.dsl.InfinispanRemoteEndpointBuilderFactory.endpointBuilder("infinispan", path);
     }
     /**
      * Infinispan (camel-infinispan)
@@ -8035,10 +8167,59 @@ public class StaticEndpointBuilders {
      * @param path cacheName
      * @return the dsl builder
      */
-    public static org.apache.camel.builder.endpoint.dsl.InfinispanEndpointBuilderFactory.InfinispanEndpointBuilder infinispan(
+    public static org.apache.camel.builder.endpoint.dsl.InfinispanRemoteEndpointBuilderFactory.InfinispanRemoteEndpointBuilder infinispan(
             String componentName,
             String path) {
-        return org.apache.camel.builder.endpoint.dsl.InfinispanEndpointBuilderFactory.endpointBuilder(componentName, path);
+        return org.apache.camel.builder.endpoint.dsl.InfinispanRemoteEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
+     * Infinispan Embedded (camel-infinispan-embedded)
+     * Read and write from/to Infinispan distributed key/value store and data
+     * grid.
+     * 
+     * Category: cache,datagrid,clustering
+     * Since: 2.13
+     * Maven coordinates: org.apache.camel:camel-infinispan-embedded
+     * 
+     * Syntax: <code>infinispan-embedded:cacheName</code>
+     * 
+     * Path parameter: cacheName (required)
+     * The name of the cache to use. Use current to use the existing cache name
+     * from the currently configured cached manager. Or use default for the
+     * default cache manager name.
+     * 
+     * @param path cacheName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.InfinispanEmbeddedEndpointBuilderFactory.InfinispanEmbeddedEndpointBuilder infinispanEmbedded(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.InfinispanEmbeddedEndpointBuilderFactory.endpointBuilder("infinispan-embedded", path);
+    }
+    /**
+     * Infinispan Embedded (camel-infinispan-embedded)
+     * Read and write from/to Infinispan distributed key/value store and data
+     * grid.
+     * 
+     * Category: cache,datagrid,clustering
+     * Since: 2.13
+     * Maven coordinates: org.apache.camel:camel-infinispan-embedded
+     * 
+     * Syntax: <code>infinispan-embedded:cacheName</code>
+     * 
+     * Path parameter: cacheName (required)
+     * The name of the cache to use. Use current to use the existing cache name
+     * from the currently configured cached manager. Or use default for the
+     * default cache manager name.
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path cacheName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.InfinispanEmbeddedEndpointBuilderFactory.InfinispanEmbeddedEndpointBuilder infinispanEmbedded(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.InfinispanEmbeddedEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
      * InfluxDB (camel-influxdb)
@@ -9256,6 +9437,59 @@ public class StaticEndpointBuilders {
             String componentName,
             String path) {
         return org.apache.camel.builder.endpoint.dsl.KafkaEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
+     * Kamelet (camel-kamelet)
+     * The Kamelet Component provides support for interacting with the Camel
+     * Route Template engine
+     * 
+     * Category: core
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-kamelet
+     * 
+     * Syntax: <code>kamelet:templateId/routeId</code>
+     * 
+     * Path parameter: templateId (required)
+     * The Route Template ID
+     * 
+     * Path parameter: routeId
+     * The Route ID. Default value notice: The ID will be auto-generated if not
+     * provided
+     * 
+     * @param path templateId/routeId
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.KameletEndpointBuilderFactory.KameletEndpointBuilder kamelet(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.KameletEndpointBuilderFactory.endpointBuilder("kamelet", path);
+    }
+    /**
+     * Kamelet (camel-kamelet)
+     * The Kamelet Component provides support for interacting with the Camel
+     * Route Template engine
+     * 
+     * Category: core
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-kamelet
+     * 
+     * Syntax: <code>kamelet:templateId/routeId</code>
+     * 
+     * Path parameter: templateId (required)
+     * The Route Template ID
+     * 
+     * Path parameter: routeId
+     * The Route ID. Default value notice: The ID will be auto-generated if not
+     * provided
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path templateId/routeId
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.KameletEndpointBuilderFactory.KameletEndpointBuilder kamelet(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.KameletEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
      * Kubernetes ConfigMap (camel-kubernetes)
@@ -12071,6 +12305,49 @@ public class StaticEndpointBuilders {
         return org.apache.camel.builder.endpoint.dsl.PahoEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
+     * Paho MQTT 5 (camel-paho-mqtt5)
+     * Communicate with MQTT message brokers using Eclipse Paho MQTT v5 Client.
+     * 
+     * Category: messaging,iot
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-paho-mqtt5
+     * 
+     * Syntax: <code>paho-mqtt5:topic</code>
+     * 
+     * Path parameter: topic (required)
+     * Name of the topic
+     * 
+     * @param path topic
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.PahoMqtt5EndpointBuilderFactory.PahoMqtt5EndpointBuilder pahoMqtt5(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.PahoMqtt5EndpointBuilderFactory.endpointBuilder("paho-mqtt5", path);
+    }
+    /**
+     * Paho MQTT 5 (camel-paho-mqtt5)
+     * Communicate with MQTT message brokers using Eclipse Paho MQTT v5 Client.
+     * 
+     * Category: messaging,iot
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-paho-mqtt5
+     * 
+     * Syntax: <code>paho-mqtt5:topic</code>
+     * 
+     * Path parameter: topic (required)
+     * Name of the topic
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path topic
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.PahoMqtt5EndpointBuilderFactory.PahoMqtt5EndpointBuilder pahoMqtt5(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.PahoMqtt5EndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
      * PDF (camel-pdf)
      * Create, modify or extract content from PDF documents.
      * 
@@ -13127,7 +13404,7 @@ public class StaticEndpointBuilders {
      * 
      * Path parameter: operationName
      * The operation to use
-     * There are 43 enums and the value can be one of: getVersions,
+     * There are 59 enums and the value can be one of: getVersions,
      * getResources, getGlobalObjects, getBasicInfo, getDescription, getSObject,
      * createSObject, updateSObject, deleteSObject, getSObjectWithId,
      * upsertSObject, deleteSObjectWithId, getBlobField, query, queryMore,
@@ -13136,7 +13413,12 @@ public class StaticEndpointBuilders {
      * createBatchQuery, getQueryResultIds, getQueryResult, getRecentReports,
      * getReportDescription, executeSyncReport, executeAsyncReport,
      * getReportInstances, getReportResults, limits, approval, approvals,
-     * composite-tree, composite-batch, composite
+     * composite-tree, composite-batch, composite, bulk2GetAllJobs,
+     * bulk2CreateJob, bulk2GetJob, bulk2CreateBatch, bulk2CloseJob,
+     * bulk2AbortJob, bulk2DeleteJob, bulk2GetSuccessfulResults,
+     * bulk2GetFailedResults, bulk2GetUnprocessedRecords, bulk2CreateQueryJob,
+     * bulk2GetQueryJob, bulk2GetAllQueryJobs, bulk2GetQueryJobResults,
+     * bulk2AbortQueryJob, bulk2DeleteQueryJob
      * 
      * Path parameter: topicName
      * The name of the topic/channel to use
@@ -13160,7 +13442,7 @@ public class StaticEndpointBuilders {
      * 
      * Path parameter: operationName
      * The operation to use
-     * There are 43 enums and the value can be one of: getVersions,
+     * There are 59 enums and the value can be one of: getVersions,
      * getResources, getGlobalObjects, getBasicInfo, getDescription, getSObject,
      * createSObject, updateSObject, deleteSObject, getSObjectWithId,
      * upsertSObject, deleteSObjectWithId, getBlobField, query, queryMore,
@@ -13169,7 +13451,12 @@ public class StaticEndpointBuilders {
      * createBatchQuery, getQueryResultIds, getQueryResult, getRecentReports,
      * getReportDescription, executeSyncReport, executeAsyncReport,
      * getReportInstances, getReportResults, limits, approval, approvals,
-     * composite-tree, composite-batch, composite
+     * composite-tree, composite-batch, composite, bulk2GetAllJobs,
+     * bulk2CreateJob, bulk2GetJob, bulk2CreateBatch, bulk2CloseJob,
+     * bulk2AbortJob, bulk2DeleteJob, bulk2GetSuccessfulResults,
+     * bulk2GetFailedResults, bulk2GetUnprocessedRecords, bulk2CreateQueryJob,
+     * bulk2GetQueryJob, bulk2GetAllQueryJobs, bulk2GetQueryJobResults,
+     * bulk2AbortQueryJob, bulk2DeleteQueryJob
      * 
      * Path parameter: topicName
      * The name of the topic/channel to use
@@ -13765,53 +14052,6 @@ public class StaticEndpointBuilders {
         return org.apache.camel.builder.endpoint.dsl.Sjms2EndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
-     * Simple JMS Batch (camel-sjms)
-     * Highly performant and transactional batch consumption of messages from a
-     * JMS queue.
-     * 
-     * Category: messaging
-     * Since: 2.16
-     * Maven coordinates: org.apache.camel:camel-sjms
-     * 
-     * Syntax: <code>sjms-batch:destinationName</code>
-     * 
-     * Path parameter: destinationName (required)
-     * The destination name. Only queues are supported, names may be prefixed by
-     * 'queue:'.
-     * 
-     * @param path destinationName
-     * @return the dsl builder
-     */
-    public static org.apache.camel.builder.endpoint.dsl.SjmsBatchEndpointBuilderFactory.SjmsBatchEndpointBuilder sjmsBatch(
-            String path) {
-        return org.apache.camel.builder.endpoint.dsl.SjmsBatchEndpointBuilderFactory.endpointBuilder("sjms-batch", path);
-    }
-    /**
-     * Simple JMS Batch (camel-sjms)
-     * Highly performant and transactional batch consumption of messages from a
-     * JMS queue.
-     * 
-     * Category: messaging
-     * Since: 2.16
-     * Maven coordinates: org.apache.camel:camel-sjms
-     * 
-     * Syntax: <code>sjms-batch:destinationName</code>
-     * 
-     * Path parameter: destinationName (required)
-     * The destination name. Only queues are supported, names may be prefixed by
-     * 'queue:'.
-     * 
-     * @param componentName to use a custom component name for the endpoint
-     * instead of the default name
-     * @param path destinationName
-     * @return the dsl builder
-     */
-    public static org.apache.camel.builder.endpoint.dsl.SjmsBatchEndpointBuilderFactory.SjmsBatchEndpointBuilder sjmsBatch(
-            String componentName,
-            String path) {
-        return org.apache.camel.builder.endpoint.dsl.SjmsBatchEndpointBuilderFactory.endpointBuilder(componentName, path);
-    }
-    /**
      * Slack (camel-slack)
      * Send and receive messages to/from Slack.
      * 
@@ -14370,6 +14610,55 @@ public class StaticEndpointBuilders {
         return org.apache.camel.builder.endpoint.dsl.SpringLdapEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
+     * Spring RabbitMQ (camel-spring-rabbitmq)
+     * Send and receive messages from RabbitMQ using Spring RabbitMQ client.
+     * 
+     * Category: messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-spring-rabbitmq
+     * 
+     * Syntax: <code>spring-rabbitmq:exchangeName</code>
+     * 
+     * Path parameter: exchangeName (required)
+     * The exchange name determines the exchange to which the produced messages
+     * will be sent to. In the case of consumers, the exchange name determines
+     * the exchange the queue will be bound to. Note: to use default exchange
+     * then do not use empty name, but use default instead.
+     * 
+     * @param path exchangeName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.SpringRabbitMQEndpointBuilderFactory.SpringRabbitMQEndpointBuilder springRabbitmq(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.SpringRabbitMQEndpointBuilderFactory.endpointBuilder("spring-rabbitmq", path);
+    }
+    /**
+     * Spring RabbitMQ (camel-spring-rabbitmq)
+     * Send and receive messages from RabbitMQ using Spring RabbitMQ client.
+     * 
+     * Category: messaging
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-spring-rabbitmq
+     * 
+     * Syntax: <code>spring-rabbitmq:exchangeName</code>
+     * 
+     * Path parameter: exchangeName (required)
+     * The exchange name determines the exchange to which the produced messages
+     * will be sent to. In the case of consumers, the exchange name determines
+     * the exchange the queue will be bound to. Note: to use default exchange
+     * then do not use empty name, but use default instead.
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path exchangeName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.SpringRabbitMQEndpointBuilderFactory.SpringRabbitMQEndpointBuilder springRabbitmq(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.SpringRabbitMQEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
      * Spring Redis (camel-spring-redis)
      * Send and receive messages from Redis.
      * 
@@ -14688,6 +14977,57 @@ public class StaticEndpointBuilders {
             String componentName,
             String path) {
         return org.apache.camel.builder.endpoint.dsl.StAXEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
+     * Stitch (camel-stitch)
+     * Stitch is a cloud ETL service that integrates various data sources into a
+     * central data warehouse through various integrations.
+     * 
+     * Category: cloud,api,compute,bigdata
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-stitch
+     * 
+     * Syntax: <code>stitch:tableName</code>
+     * 
+     * Path parameter: tableName
+     * The name of the destination table the data is being pushed to. Table
+     * names must be unique in each destination schema, or loading issues will
+     * occur. Note: The number of characters in the table name should be within
+     * the destinations allowed limits or data will rejected.
+     * 
+     * @param path tableName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.StitchEndpointBuilderFactory.StitchEndpointBuilder stitch(
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.StitchEndpointBuilderFactory.endpointBuilder("stitch", path);
+    }
+    /**
+     * Stitch (camel-stitch)
+     * Stitch is a cloud ETL service that integrates various data sources into a
+     * central data warehouse through various integrations.
+     * 
+     * Category: cloud,api,compute,bigdata
+     * Since: 3.8
+     * Maven coordinates: org.apache.camel:camel-stitch
+     * 
+     * Syntax: <code>stitch:tableName</code>
+     * 
+     * Path parameter: tableName
+     * The name of the destination table the data is being pushed to. Table
+     * names must be unique in each destination schema, or loading issues will
+     * occur. Note: The number of characters in the table name should be within
+     * the destinations allowed limits or data will rejected.
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path tableName
+     * @return the dsl builder
+     */
+    public static org.apache.camel.builder.endpoint.dsl.StitchEndpointBuilderFactory.StitchEndpointBuilder stitch(
+            String componentName,
+            String path) {
+        return org.apache.camel.builder.endpoint.dsl.StitchEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
      * Stomp (camel-stomp)

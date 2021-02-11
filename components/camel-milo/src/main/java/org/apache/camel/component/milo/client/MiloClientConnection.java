@@ -16,6 +16,7 @@
  */
 package org.apache.camel.component.milo.client;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -33,16 +34,17 @@ import static java.util.Objects.requireNonNull;
 public class MiloClientConnection implements AutoCloseable {
 
     private final MiloClientConfiguration configuration;
-
     private SubscriptionManager manager;
+    private volatile boolean initialized;
+    private MonitorFilterConfiguration monitorFilterConfiguration;
 
-    private boolean initialized;
-
-    public MiloClientConnection(final MiloClientConfiguration configuration) {
+    public MiloClientConnection(final MiloClientConfiguration configuration,
+                                final MonitorFilterConfiguration monitorFilterConfiguration) {
         requireNonNull(configuration);
 
         // make a copy since the configuration is mutable
         this.configuration = configuration.clone();
+        this.monitorFilterConfiguration = monitorFilterConfiguration;
     }
 
     public MiloClientConfiguration getConfiguration() {
@@ -87,7 +89,8 @@ public class MiloClientConnection implements AutoCloseable {
 
         checkInit();
 
-        final UInteger handle = this.manager.registerItem(nodeId, samplingInterval, valueConsumer);
+        final UInteger handle
+                = this.manager.registerItem(nodeId, samplingInterval, valueConsumer, this.monitorFilterConfiguration);
 
         return () -> MiloClientConnection.this.manager.unregisterItem(handle);
     }
@@ -100,6 +103,12 @@ public class MiloClientConnection implements AutoCloseable {
         checkInit();
 
         return this.manager.write(nodeId, mapWriteValue(value));
+    }
+
+    public CompletableFuture<?> readValues(final List<ExpandedNodeId> nodeIds) {
+        checkInit();
+
+        return this.manager.readValues(nodeIds);
     }
 
     public CompletableFuture<CallMethodResult> call(
@@ -116,7 +125,6 @@ public class MiloClientConnection implements AutoCloseable {
      * @return       the outgoing call request
      */
     private Variant[] mapCallValue(final Object value) {
-
         if (value == null) {
             return new Variant[0];
         }

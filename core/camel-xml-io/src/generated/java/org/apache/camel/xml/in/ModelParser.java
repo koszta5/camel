@@ -22,6 +22,7 @@ package org.apache.camel.xml.in;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.Optional;
 import javax.annotation.Generated;
 import org.apache.camel.model.*;
 import org.apache.camel.model.cloud.*;
@@ -1040,10 +1041,9 @@ public class ModelParser extends BaseParser {
             return true;
         }, noElementHandler(), noValueHandler());
     }
-    public RouteTemplatesDefinition parseRouteTemplatesDefinition()
+    public Optional<RouteTemplatesDefinition> parseRouteTemplatesDefinition()
             throws IOException, XmlPullParserException {
-        expectTag("routeTemplates");
-        return doParseRouteTemplatesDefinition();
+        return hasTag("routeTemplates") ? Optional.of(doParseRouteTemplatesDefinition()) : Optional.empty();
     }
     protected RouteTemplatesDefinition doParseRouteTemplatesDefinition() throws IOException, XmlPullParserException {
         return doParse(new RouteTemplatesDefinition(),
@@ -1055,10 +1055,9 @@ public class ModelParser extends BaseParser {
             return optionalIdentifiedDefinitionElementHandler().accept(def, key);
         }, noValueHandler());
     }
-    public RoutesDefinition parseRoutesDefinition()
+    public Optional<RoutesDefinition> parseRoutesDefinition()
             throws IOException, XmlPullParserException {
-        expectTag("routes");
-        return doParseRoutesDefinition();
+        return hasTag("routes") ? Optional.of(doParseRoutesDefinition()) : Optional.empty();
     }
     protected RoutesDefinition doParseRoutesDefinition() throws IOException, XmlPullParserException {
         return doParse(new RoutesDefinition(),
@@ -1962,7 +1961,7 @@ public class ModelParser extends BaseParser {
                 case "enableFeatures": def.setEnableFeatures(val); break;
                 case "enableJaxbAnnotationModule": def.setEnableJaxbAnnotationModule(val); break;
                 case "include": def.setInclude(val); break;
-                case "jsonView": def.setJsonView(asClass(val)); break;
+                case "jsonViewTypeName": def.setJsonViewTypeName(val); break;
                 case "moduleClassNames": def.setModuleClassNames(val); break;
                 case "moduleRefs": def.setModuleRefs(val); break;
                 case "prettyPrint": def.setPrettyPrint(val); break;
@@ -2023,7 +2022,7 @@ public class ModelParser extends BaseParser {
                 case "dropRootNode": def.setDropRootNode(val); break;
                 case "enableFeatures": def.setEnableFeatures(val); break;
                 case "include": def.setInclude(val); break;
-                case "jsonView": def.setJsonView(asClass(val)); break;
+                case "jsonViewTypeName": def.setJsonViewTypeName(val); break;
                 case "library": def.setLibrary(JsonLibrary.valueOf(val)); break;
                 case "moduleClassNames": def.setModuleClassNames(val); break;
                 case "moduleRefs": def.setModuleRefs(val); break;
@@ -2795,10 +2794,9 @@ public class ModelParser extends BaseParser {
             return false;
         }, noValueHandler());
     }
-    public RestsDefinition parseRestsDefinition()
+    public Optional<RestsDefinition> parseRestsDefinition()
             throws IOException, XmlPullParserException {
-        expectTag("rests");
-        return doParseRestsDefinition();
+        return hasTag("rests") ? Optional.of(doParseRestsDefinition()) : Optional.empty();
     }
     protected RestsDefinition doParseRestsDefinition() throws IOException, XmlPullParserException {
         return doParse(new RestsDefinition(),

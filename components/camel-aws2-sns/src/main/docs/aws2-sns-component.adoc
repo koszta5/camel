@@ -60,7 +60,7 @@ The AWS 2 Simple Notification System (SNS) component supports 22 options, which 
 | *messageDeduplicationIdStrategy* (producer) | Only for FIFO Topic. Strategy for setting the messageDeduplicationId on the message. Can be one of the following options: useExchangeId, useContentBasedDeduplication. For the useContentBasedDeduplication option, no messageDeduplicationId will be set on the message. There are 2 enums and the value can be one of: useExchangeId, useContentBasedDeduplication | useExchangeId | String
 | *messageGroupIdStrategy* (producer) | Only for FIFO Topic. Strategy for setting the messageGroupId on the message. Can be one of the following options: useConstant, useExchangeId, usePropertyValue. For the usePropertyValue option, the value of property CamelAwsMessageGroupId will be used. There are 3 enums and the value can be one of: useConstant, useExchangeId, usePropertyValue |  | String
 | *messageStructure* (producer) | The message structure to use such as json |  | String
-| *policy* (producer) | The policy for this queue. Is loaded by default from classpath, but you can prefix with classpath:, file:, or http: to load the resource from different systems. |  | String
+| *policy* (producer) | The policy for this topic. Is loaded by default from classpath, but you can prefix with classpath:, file:, or http: to load the resource from different systems. |  | String
 | *proxyHost* (producer) | To define a proxy host when instantiating the SNS client |  | String
 | *proxyPort* (producer) | To define a proxy port when instantiating the SNS client |  | Integer
 | *proxyProtocol* (producer) | To define a proxy protocol when instantiating the SNS client. There are 2 enums and the value can be one of: HTTP, HTTPS | HTTPS | Protocol
@@ -100,7 +100,7 @@ with the following path and query parameters:
 |===
 
 
-=== Query Parameters (22 parameters):
+=== Query Parameters (21 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
@@ -114,7 +114,7 @@ with the following path and query parameters:
 | *messageDeduplicationIdStrategy* (producer) | Only for FIFO Topic. Strategy for setting the messageDeduplicationId on the message. Can be one of the following options: useExchangeId, useContentBasedDeduplication. For the useContentBasedDeduplication option, no messageDeduplicationId will be set on the message. There are 2 enums and the value can be one of: useExchangeId, useContentBasedDeduplication | useExchangeId | String
 | *messageGroupIdStrategy* (producer) | Only for FIFO Topic. Strategy for setting the messageGroupId on the message. Can be one of the following options: useConstant, useExchangeId, usePropertyValue. For the usePropertyValue option, the value of property CamelAwsMessageGroupId will be used. There are 3 enums and the value can be one of: useConstant, useExchangeId, usePropertyValue |  | String
 | *messageStructure* (producer) | The message structure to use such as json |  | String
-| *policy* (producer) | The policy for this queue. Is loaded by default from classpath, but you can prefix with classpath:, file:, or http: to load the resource from different systems. |  | String
+| *policy* (producer) | The policy for this topic. Is loaded by default from classpath, but you can prefix with classpath:, file:, or http: to load the resource from different systems. |  | String
 | *proxyHost* (producer) | To define a proxy host when instantiating the SNS client |  | String
 | *proxyPort* (producer) | To define a proxy port when instantiating the SNS client |  | Integer
 | *proxyProtocol* (producer) | To define a proxy protocol when instantiating the SNS client. There are 2 enums and the value can be one of: HTTP, HTTPS | HTTPS | Protocol
@@ -125,7 +125,6 @@ with the following path and query parameters:
 | *subscribeSNStoSQS* (producer) | Define if the subscription between SNS Topic and SQS must be done or not | false | boolean
 | *trustAllCertificates* (producer) | If we want to trust all certificates in case of overriding the endpoint | false | boolean
 | *useDefaultCredentialsProvider* (producer) | Set whether the SNS client should expect to load credentials on an AWS infra instance or to expect static credentials to be passed in. | false | boolean
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 | *accessKey* (security) | Amazon AWS Access Key |  | String
 | *secretKey* (security) | Amazon AWS Secret Key |  | String
 |===
@@ -200,12 +199,6 @@ from("aws2-sqs://test-camel?amazonSQSClient=#amazonSQSClient&delay=50&maxMessage
 
 With the option `autoCreateTopic` users are able to avoid the autocreation of an SNS Topic in case it doesn't exist. The default for this option is `true`.
 If set to false any operation on a not-existent topic in AWS won't be successful and an error will be returned.
-
-== Automatic detection of SnsClient client in registry
-
-The component is capable of detecting the presence of an SnsClient bean into the registry.
-If it's the only instance of that type it will be used as client and you won't have to define it as uri parameter.
-This may be really useful for smarter configuration of the endpoint.
 
 == SNS FIFO
 

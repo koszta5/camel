@@ -21,14 +21,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
 import javax.jms.ExceptionListener;
-import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.TemporaryQueue;
-import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
 import org.apache.camel.AsyncEndpoint;
@@ -88,7 +84,6 @@ public class JmsEndpoint extends DefaultEndpoint
     @UriPath(description = "Name of the queue or topic to use as destination")
     @Metadata(required = true)
     private String destinationName;
-    private Destination destination;
     @UriParam(label = "advanced",
               description = "To use a custom HeaderFilterStrategy to filter header to and from Camel message.")
     private HeaderFilterStrategy headerFilterStrategy;
@@ -96,13 +91,6 @@ public class JmsEndpoint extends DefaultEndpoint
     private JmsConfiguration configuration;
 
     public JmsEndpoint() {
-        this(null, null);
-    }
-
-    public JmsEndpoint(Topic destination) throws JMSException {
-        this("jms:topic:" + destination.getTopicName(), null);
-        this.destination = destination;
-        this.destinationType = "topic";
     }
 
     public JmsEndpoint(String uri, JmsComponent component, String destinationName, boolean pubSubDomain,
@@ -149,36 +137,10 @@ public class JmsEndpoint extends DefaultEndpoint
         this(UnsafeUriCharactersEncoder.encode(endpointUri), destinationName, true);
     }
 
-    /**
-     * Returns a new JMS endpoint for the given JMS destination using the configuration from the given JMS component
-     */
-    public static JmsEndpoint newInstance(Destination destination, JmsComponent component) throws JMSException {
-        JmsEndpoint answer = newInstance(destination);
-        JmsConfiguration newConfiguration = component.getConfiguration().copy();
-        answer.setConfiguration(newConfiguration);
-        answer.setCamelContext(component.getCamelContext());
-        return answer;
-    }
-
-    /**
-     * Returns a new JMS endpoint for the given JMS destination
-     */
-    public static JmsEndpoint newInstance(Destination destination) throws JMSException {
-        if (destination instanceof TemporaryQueue) {
-            return new JmsTemporaryQueueEndpoint((TemporaryQueue) destination);
-        } else if (destination instanceof TemporaryTopic) {
-            return new JmsTemporaryTopicEndpoint((TemporaryTopic) destination);
-        } else if (destination instanceof Queue) {
-            return new JmsQueueEndpoint((Queue) destination);
-        } else {
-            return new JmsEndpoint((Topic) destination);
-        }
-    }
-
     @Override
     public Producer createProducer() throws Exception {
         Producer answer = new JmsProducer(this);
-        if (isSynchronous()) {
+        if (getConfiguration().isSynchronous()) {
             return new SynchronousDelegateProducer(answer);
         } else {
             return answer;
@@ -197,11 +159,12 @@ public class JmsEndpoint extends DefaultEndpoint
 
     public void configureListenerContainer(AbstractMessageListenerContainer listenerContainer, JmsConsumer consumer) {
         if (destinationName != null) {
-            listenerContainer.setDestinationName(destinationName);
+            String target = destinationName;
+            if (getConfiguration().getArtemisConsumerPriority() != 0) {
+                target += "?consumer-priority=" + getConfiguration().getArtemisConsumerPriority();
+            }
+            listenerContainer.setDestinationName(target);
             LOG.debug("Using destinationName: {} on listenerContainer: {}", destinationName, listenerContainer);
-        } else if (destination != null) {
-            listenerContainer.setDestination(destination);
-            LOG.debug("Using destination: {} on listenerContainer: {}", destinationName, listenerContainer);
         } else {
             DestinationResolver resolver = getDestinationResolver();
             if (resolver != null) {
@@ -427,17 +390,6 @@ public class JmsEndpoint extends DefaultEndpoint
      */
     public void setDestinationName(String destinationName) {
         this.destinationName = destinationName;
-    }
-
-    public Destination getDestination() {
-        return destination;
-    }
-
-    /**
-     * Allows a specific JMS Destination object to be used as the destination
-     */
-    public void setDestination(Destination destination) {
-        this.destination = destination;
     }
 
     public JmsConfiguration getConfiguration() {
@@ -1325,9 +1277,7 @@ public class JmsEndpoint extends DefaultEndpoint
     @Override
     protected String createEndpointUri() {
         String scheme = "jms";
-        if (destination != null) {
-            return scheme + ":" + destination;
-        } else if (destinationName != null) {
+        if (destinationName != null) {
             return scheme + ":" + destinationName;
         }
         DestinationResolver resolver = getDestinationResolver();

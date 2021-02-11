@@ -16,8 +16,6 @@
  */
 package org.apache.camel.component.jbpm;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,9 +43,11 @@ public class JBPMEndpoint extends DefaultEndpoint {
 
     @UriParam
     private JBPMConfiguration configuration;
+    @UriParam(defaultValue = "false", label = "consumer,advanced",
+              description = "Sets whether synchronous processing should be strictly used")
+    private boolean synchronous;
 
-    public JBPMEndpoint(String uri, JBPMComponent component, JBPMConfiguration configuration) throws URISyntaxException,
-                                                                                              MalformedURLException {
+    public JBPMEndpoint(String uri, JBPMComponent component, JBPMConfiguration configuration) {
         super(uri, component);
         this.configuration = configuration;
     }
@@ -83,5 +83,13 @@ public class JBPMEndpoint extends DefaultEndpoint {
 
     public JBPMConfiguration getConfiguration() {
         return configuration;
+    }
+
+    public boolean isSynchronous() {
+        return synchronous;
+    }
+
+    public void setSynchronous(boolean synchronous) {
+        this.synchronous = synchronous;
     }
 }

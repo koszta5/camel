@@ -185,27 +185,31 @@ public class RouteTemplateDefinition extends OptionalIdentifiedDefinition {
     public RouteDefinition asRouteDefinition() {
         RouteDefinition copy = new RouteDefinition();
 
-        // do not copy id as it is used for route template id
-        copy.setInheritErrorHandler(route.isInheritErrorHandler());
-        copy.setGroup(route.getGroup());
-        copy.setStreamCache(route.getStreamCache());
-        copy.setTrace(route.getTrace());
-        copy.setMessageHistory(route.getMessageHistory());
-        copy.setLogMask(route.getLogMask());
-        copy.setDelayer(route.getDelayer());
-        copy.setStartupOrder(route.getStartupOrder());
-        copy.setRoutePolicies(route.getRoutePolicies());
-        copy.setRoutePolicyRef(route.getRoutePolicyRef());
-        copy.setShutdownRoute(route.getShutdownRoute());
-        copy.setShutdownRunningTask(route.getShutdownRunningTask());
+        // must set these first in this order
         copy.setErrorHandlerRef(route.getErrorHandlerRef());
         copy.setErrorHandlerFactory(route.getErrorHandlerFactory());
-        copy.setInputType(route.getInputType());
-        copy.setOutputType(route.getOutputType());
-        copy.setRouteProperties(route.getRouteProperties());
-        copy.setTemplate(true);
+
+        // and then copy over the rest
+        // (do not copy id as it is used for route template id)
+        copy.setAutoStartup(route.getAutoStartup());
+        copy.setDelayer(route.getDelayer());
+        copy.setGroup(route.getGroup());
+        copy.setInheritErrorHandler(route.isInheritErrorHandler());
         copy.setInput(route.getInput());
+        copy.setInputType(route.getInputType());
+        copy.setLogMask(route.getLogMask());
+        copy.setMessageHistory(route.getMessageHistory());
+        copy.setOutputType(route.getOutputType());
         copy.setOutputs(route.getOutputs());
+        copy.setRoutePolicies(route.getRoutePolicies());
+        copy.setRoutePolicyRef(route.getRoutePolicyRef());
+        copy.setRouteProperties(route.getRouteProperties());
+        copy.setShutdownRoute(route.getShutdownRoute());
+        copy.setShutdownRunningTask(route.getShutdownRunningTask());
+        copy.setStartupOrder(route.getStartupOrder());
+        copy.setStreamCache(route.getStreamCache());
+        copy.setTemplate(true);
+        copy.setTrace(route.getTrace());
         if (route.getDescription() != null) {
             copy.setDescription(route.getDescription());
         } else {

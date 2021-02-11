@@ -59,6 +59,8 @@ import org.apache.camel.spi.RestBindingJaxbDataFormatFactory;
 import org.apache.camel.spi.RouteController;
 import org.apache.camel.spi.RouteFactory;
 import org.apache.camel.spi.RouteStartupOrder;
+import org.apache.camel.spi.RoutesLoader;
+import org.apache.camel.spi.StartupStepRecorder;
 import org.apache.camel.spi.UnitOfWorkFactory;
 import org.apache.camel.spi.UriFactoryResolver;
 import org.apache.camel.spi.XMLRoutesDefinitionLoader;
@@ -240,18 +242,18 @@ public interface ExtendedCamelContext extends CamelContext {
     void setErrorHandlerFactory(ErrorHandlerFactory errorHandlerFactory);
 
     /**
-     * Uses a custom node id factory when generating auto assigned ids to the nodes in the route definitions
-     *
-     * @param factory custom factory to use
-     */
-    void setNodeIdFactory(NodeIdFactory factory);
-
-    /**
      * Gets the node id factory
      *
      * @return the node id factory
      */
     NodeIdFactory getNodeIdFactory();
+
+    /**
+     * Uses a custom node id factory when generating auto assigned ids to the nodes in the route definitions
+     *
+     * @param factory custom factory to use
+     */
+    void setNodeIdFactory(NodeIdFactory factory);
 
     /**
      * Gets the {@link ComponentResolver} to use.
@@ -351,6 +353,16 @@ public interface ExtendedCamelContext extends CamelContext {
     void setBootstrapFactoryFinder(FactoryFinder factoryFinder);
 
     /**
+     * Gets the bootstrap FactoryFinder which will be used for the loading the factory class from META-INF in the given
+     * path. This bootstrap factory finder is only intended to be used during bootstrap (starting) CamelContext.
+     *
+     * @param  path the META-INF path
+     * @return      the bootstrap factory finder
+     * @see         #getDefaultFactoryFinder()
+     */
+    FactoryFinder getBootstrapFactoryFinder(String path);
+
+    /**
      * Gets the bootstrap {@link ConfigurerResolver} to use. This bootstrap resolver is only intended to be used during
      * bootstrap (starting) CamelContext.
      */
@@ -371,18 +383,18 @@ public interface ExtendedCamelContext extends CamelContext {
     FactoryFinder getFactoryFinder(String path);
 
     /**
-     * Sets the factory finder resolver to use.
-     *
-     * @param resolver the factory finder resolver
-     */
-    void setFactoryFinderResolver(FactoryFinderResolver resolver);
-
-    /**
      * Gets the factory finder resolver to use
      *
      * @return the factory finder resolver
      */
     FactoryFinderResolver getFactoryFinderResolver();
+
+    /**
+     * Sets the factory finder resolver to use.
+     *
+     * @param resolver the factory finder resolver
+     */
+    void setFactoryFinderResolver(FactoryFinderResolver resolver);
 
     /**
      * Gets the current {@link org.apache.camel.spi.ProcessorFactory}
@@ -592,19 +604,27 @@ public interface ExtendedCamelContext extends CamelContext {
     void setEventNotificationApplicable(boolean eventNotificationApplicable);
 
     /**
+     * Gets the {@link XMLRoutesDefinitionLoader} to be used.
+     *
+     * @deprecated use {@link #getRoutesLoader()}
+     */
+    @Deprecated
+    XMLRoutesDefinitionLoader getXMLRoutesDefinitionLoader();
+
+    /**
      * Sets a custom {@link XMLRoutesDefinitionLoader} to be used.
      */
     void setXMLRoutesDefinitionLoader(XMLRoutesDefinitionLoader xmlRoutesDefinitionLoader);
 
     /**
-     * Gets the {@link XMLRoutesDefinitionLoader} to be used.
+     * Gets the {@link RoutesLoader} to be used.
      */
-    XMLRoutesDefinitionLoader getXMLRoutesDefinitionLoader();
+    RoutesLoader getRoutesLoader();
 
     /**
-     * Sets a custom {@link ModelToXMLDumper} to be used.
+     * Sets a custom {@link RoutesLoader} to be used.
      */
-    void setModelToXMLDumper(ModelToXMLDumper modelToXMLDumper);
+    void setRoutesLoader(RoutesLoader routesLoader);
 
     /**
      * Gets the {@link ModelToXMLDumper} to be used.
@@ -612,14 +632,19 @@ public interface ExtendedCamelContext extends CamelContext {
     ModelToXMLDumper getModelToXMLDumper();
 
     /**
-     * Sets a custom {@link RestBindingJaxbDataFormatFactory} to be used.
+     * Sets a custom {@link ModelToXMLDumper} to be used.
      */
-    void setRestBindingJaxbDataFormatFactory(RestBindingJaxbDataFormatFactory restBindingJaxbDataFormatFactory);
+    void setModelToXMLDumper(ModelToXMLDumper modelToXMLDumper);
 
     /**
      * Gets the {@link RestBindingJaxbDataFormatFactory} to be used.
      */
     RestBindingJaxbDataFormatFactory getRestBindingJaxbDataFormatFactory();
+
+    /**
+     * Sets a custom {@link RestBindingJaxbDataFormatFactory} to be used.
+     */
+    void setRestBindingJaxbDataFormatFactory(RestBindingJaxbDataFormatFactory restBindingJaxbDataFormatFactory);
 
     /**
      * Gets the {@link RuntimeCamelCatalog} if available on the classpath.
@@ -663,6 +688,16 @@ public interface ExtendedCamelContext extends CamelContext {
     EndpointUriFactory getEndpointUriFactory(String scheme);
 
     /**
+     * Gets the {@link StartupStepRecorder} to use.
+     */
+    StartupStepRecorder getStartupStepRecorder();
+
+    /**
+     * Sets the {@link StartupStepRecorder} to use.
+     */
+    void setStartupStepRecorder(StartupStepRecorder startupStepRecorder);
+
+    /**
      * Internal API for adding routes. Do not use this as end user.
      */
     void addRoute(Route route);
@@ -681,13 +716,13 @@ public interface ExtendedCamelContext extends CamelContext {
      * Whether to run in lightweight mode which triggers some optimizations and memory reduction. Danger this causes
      * Camel to be less dynamic such as adding new route after Camel is started would not be possible.
      */
-    void setLightweight(boolean lightweight);
+    boolean isLightweight();
 
     /**
      * Whether to run in lightweight mode which triggers some optimizations and memory reduction. Danger this causes
      * Camel to be less dynamic such as adding new route after Camel is started would not be possible.
      */
-    boolean isLightweight();
+    void setLightweight(boolean lightweight);
 
     /**
      * Danger!!! This will dispose the route model from the {@link CamelContext} which is used for lightweight mode.

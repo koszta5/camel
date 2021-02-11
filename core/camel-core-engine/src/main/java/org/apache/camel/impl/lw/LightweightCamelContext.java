@@ -47,6 +47,7 @@ import org.apache.camel.ServiceStatus;
 import org.apache.camel.ShutdownRoute;
 import org.apache.camel.ShutdownRunningTask;
 import org.apache.camel.StartupListener;
+import org.apache.camel.StartupSummaryLevel;
 import org.apache.camel.TypeConverter;
 import org.apache.camel.ValueHolder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -122,8 +123,10 @@ import org.apache.camel.spi.RouteController;
 import org.apache.camel.spi.RouteFactory;
 import org.apache.camel.spi.RoutePolicyFactory;
 import org.apache.camel.spi.RouteStartupOrder;
+import org.apache.camel.spi.RoutesLoader;
 import org.apache.camel.spi.RuntimeEndpointRegistry;
 import org.apache.camel.spi.ShutdownStrategy;
+import org.apache.camel.spi.StartupStepRecorder;
 import org.apache.camel.spi.StreamCachingStrategy;
 import org.apache.camel.spi.Tracer;
 import org.apache.camel.spi.Transformer;
@@ -925,6 +928,16 @@ public class LightweightCamelContext implements ExtendedCamelContext, CatalogCam
     }
 
     @Override
+    public void setStartupSummaryLevel(StartupSummaryLevel startupSummaryLevel) {
+        delegate.setStartupSummaryLevel(startupSummaryLevel);
+    }
+
+    @Override
+    public StartupSummaryLevel getStartupSummaryLevel() {
+        return delegate.getStartupSummaryLevel();
+    }
+
+    @Override
     public void setStreamCaching(Boolean cache) {
         delegate.setStreamCaching(cache);
     }
@@ -1258,6 +1271,11 @@ public class LightweightCamelContext implements ExtendedCamelContext, CatalogCam
     }
 
     @Override
+    public FactoryFinder getBootstrapFactoryFinder(String path) {
+        return getExtendedCamelContext().getBootstrapFactoryFinder(path);
+    }
+
+    @Override
     public FactoryFinder getFactoryFinder(String path) {
         return getExtendedCamelContext().getFactoryFinder(path);
     }
@@ -1453,6 +1471,16 @@ public class LightweightCamelContext implements ExtendedCamelContext, CatalogCam
     }
 
     @Override
+    public void setRoutesLoader(RoutesLoader routesLoader) {
+        getExtendedCamelContext().setRoutesLoader(routesLoader);
+    }
+
+    @Override
+    public RoutesLoader getRoutesLoader() {
+        return getExtendedCamelContext().getRoutesLoader();
+    }
+
+    @Override
     public void setModelToXMLDumper(ModelToXMLDumper modelToXMLDumper) {
         getExtendedCamelContext().setModelToXMLDumper(modelToXMLDumper);
     }
@@ -1535,6 +1563,16 @@ public class LightweightCamelContext implements ExtendedCamelContext, CatalogCam
     @Override
     public boolean isLightweight() {
         return getExtendedCamelContext().isLightweight();
+    }
+
+    @Override
+    public StartupStepRecorder getStartupStepRecorder() {
+        return getExtendedCamelContext().getStartupStepRecorder();
+    }
+
+    @Override
+    public void setStartupStepRecorder(StartupStepRecorder startupStepRecorder) {
+        getExtendedCamelContext().setStartupStepRecorder(startupStepRecorder);
     }
 
     //

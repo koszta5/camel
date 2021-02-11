@@ -45,6 +45,8 @@ public class JsonValidatorEndpoint extends ResourceEndpoint {
 
     private volatile JsonSchema schema;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @UriParam(defaultValue = "true")
     private boolean failOnNullBody = true;
     @UriParam(defaultValue = "true")
@@ -108,20 +110,20 @@ public class JsonValidatorEndpoint extends ResourceEndpoint {
                 if (cache == null) {
                     cache = exchange.getContext().getTypeConverter().convertTo(StreamCache.class, exchange, content);
                 }
-                ObjectMapper mapper = new ObjectMapper();
-                InputStream is = exchange.getContext().getTypeConverter().mandatoryConvertTo(InputStream.class, exchange,
-                        cache != null ? cache : content);
-                JsonNode node = mapper.readTree(is);
-                if (node == null) {
-                    throw new NoJsonBodyValidationException(exchange);
-                }
-                Set<ValidationMessage> errors = localSchema.validate(node);
+                try (InputStream is = exchange.getContext().getTypeConverter().mandatoryConvertTo(InputStream.class, exchange,
+                        cache != null ? cache : content)) {
+                    JsonNode node = mapper.readTree(is);
+                    if (node == null) {
+                        throw new NoJsonBodyValidationException(exchange);
+                    }
+                    Set<ValidationMessage> errors = localSchema.validate(node);
 
-                if (!errors.isEmpty()) {
-                    this.log.debug("Validated JSON has {} errors", errors.size());
-                    this.errorHandler.handleErrors(exchange, schema, errors);
-                } else {
-                    this.log.debug("Validated JSON success");
+                    if (!errors.isEmpty()) {
+                        this.log.debug("Validated JSON has {} errors", errors.size());
+                        this.errorHandler.handleErrors(exchange, schema, errors);
+                    } else {
+                        this.log.debug("Validated JSON success");
+                    }
                 }
             }
         } catch (Exception e) {

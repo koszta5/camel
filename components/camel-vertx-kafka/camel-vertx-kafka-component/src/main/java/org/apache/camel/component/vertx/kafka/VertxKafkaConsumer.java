@@ -24,6 +24,7 @@ import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExtendedExchange;
 import org.apache.camel.Processor;
+import org.apache.camel.Suspendable;
 import org.apache.camel.component.vertx.kafka.configuration.VertxKafkaConfiguration;
 import org.apache.camel.component.vertx.kafka.operations.VertxKafkaConsumerOperations;
 import org.apache.camel.spi.Synchronization;
@@ -31,7 +32,7 @@ import org.apache.camel.support.DefaultConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VertxKafkaConsumer extends DefaultConsumer {
+public class VertxKafkaConsumer extends DefaultConsumer implements Suspendable {
 
     private static final Logger LOG = LoggerFactory.getLogger(VertxKafkaConsumer.class);
 
@@ -45,8 +46,14 @@ public class VertxKafkaConsumer extends DefaultConsumer {
     protected void doStart() throws Exception {
         super.doStart();
 
+        String brokers = getEndpoint().getComponent().getVertxKafkaClientFactory().getBootstrapBrokers(getConfiguration());
+        if (brokers != null) {
+            LOG.debug("Creating KafkaConsumer connecting to BootstrapBrokers: {}", brokers);
+        }
+
         // create the consumer client
-        kafkaConsumer = KafkaConsumer.create(getEndpoint().getVertx(), getConfiguration().createConsumerConfiguration());
+        kafkaConsumer = getEndpoint().getComponent().getVertxKafkaClientFactory()
+                .getVertxKafkaConsumer(getEndpoint().getVertx(), getConfiguration().createConsumerConfiguration());
 
         // create the consumer operation
         final VertxKafkaConsumerOperations consumerOperations
@@ -63,6 +70,20 @@ public class VertxKafkaConsumer extends DefaultConsumer {
         }
 
         super.doStop();
+    }
+
+    @Override
+    protected void doSuspend() throws Exception {
+        if (kafkaConsumer != null) {
+            kafkaConsumer.pause();
+        }
+    }
+
+    @Override
+    protected void doResume() throws Exception {
+        if (kafkaConsumer != null) {
+            kafkaConsumer.resume();
+        }
     }
 
     public VertxKafkaConfiguration getConfiguration() {

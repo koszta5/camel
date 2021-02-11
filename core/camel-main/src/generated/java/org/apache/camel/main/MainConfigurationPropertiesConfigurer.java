@@ -31,6 +31,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "AutoConfigurationFailFast": target.setAutoConfigurationFailFast(property(camelContext, boolean.class, value)); return true;
         case "autoconfigurationlogsummary":
         case "AutoConfigurationLogSummary": target.setAutoConfigurationLogSummary(property(camelContext, boolean.class, value)); return true;
+        case "autoconfigurationsystempropertiesenabled":
+        case "AutoConfigurationSystemPropertiesEnabled": target.setAutoConfigurationSystemPropertiesEnabled(property(camelContext, boolean.class, value)); return true;
         case "autostartup":
         case "AutoStartup": target.setAutoStartup(property(camelContext, boolean.class, value)); return true;
         case "autowiredenabled":
@@ -115,8 +117,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RouteControllerIncludeRoutes": target.setRouteControllerIncludeRoutes(property(camelContext, java.lang.String.class, value)); return true;
         case "routecontrollerinitialdelay":
         case "RouteControllerInitialDelay": target.setRouteControllerInitialDelay(property(camelContext, long.class, value)); return true;
-        case "routecontrollerroutestartuplogginglevel":
-        case "RouteControllerRouteStartupLoggingLevel": target.setRouteControllerRouteStartupLoggingLevel(property(camelContext, org.apache.camel.LoggingLevel.class, value)); return true;
+        case "routecontrollerlogginglevel":
+        case "RouteControllerLoggingLevel": target.setRouteControllerLoggingLevel(property(camelContext, org.apache.camel.LoggingLevel.class, value)); return true;
         case "routecontrollersuperviseenabled":
         case "RouteControllerSuperviseEnabled": target.setRouteControllerSuperviseEnabled(property(camelContext, boolean.class, value)); return true;
         case "routecontrollerthreadpoolsize":
@@ -133,6 +135,10 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RoutesBuilders": target.setRoutesBuilders(property(camelContext, java.util.List.class, value)); return true;
         case "routescollectorenabled":
         case "RoutesCollectorEnabled": target.setRoutesCollectorEnabled(property(camelContext, boolean.class, value)); return true;
+        case "routesexcludepattern":
+        case "RoutesExcludePattern": target.setRoutesExcludePattern(property(camelContext, java.lang.String.class, value)); return true;
+        case "routesincludepattern":
+        case "RoutesIncludePattern": target.setRoutesIncludePattern(property(camelContext, java.lang.String.class, value)); return true;
         case "shutdownloginflightexchangesontimeout":
         case "ShutdownLogInflightExchangesOnTimeout": target.setShutdownLogInflightExchangesOnTimeout(property(camelContext, boolean.class, value)); return true;
         case "shutdownnowontimeout":
@@ -143,6 +149,20 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "ShutdownSuppressLoggingOnTimeout": target.setShutdownSuppressLoggingOnTimeout(property(camelContext, boolean.class, value)); return true;
         case "shutdowntimeout":
         case "ShutdownTimeout": target.setShutdownTimeout(property(camelContext, int.class, value)); return true;
+        case "startuprecorder":
+        case "StartupRecorder": target.setStartupRecorder(property(camelContext, java.lang.String.class, value)); return true;
+        case "startuprecorderdir":
+        case "StartupRecorderDir": target.setStartupRecorderDir(property(camelContext, java.lang.String.class, value)); return true;
+        case "startuprecorderduration":
+        case "StartupRecorderDuration": target.setStartupRecorderDuration(property(camelContext, long.class, value)); return true;
+        case "startuprecordermaxdepth":
+        case "StartupRecorderMaxDepth": target.setStartupRecorderMaxDepth(property(camelContext, int.class, value)); return true;
+        case "startuprecorderprofile":
+        case "StartupRecorderProfile": target.setStartupRecorderProfile(property(camelContext, java.lang.String.class, value)); return true;
+        case "startuprecorderrecording":
+        case "StartupRecorderRecording": target.setStartupRecorderRecording(property(camelContext, boolean.class, value)); return true;
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": target.setStartupSummaryLevel(property(camelContext, org.apache.camel.StartupSummaryLevel.class, value)); return true;
         case "streamcachinganyspoolrules":
         case "StreamCachingAnySpoolRules": target.setStreamCachingAnySpoolRules(property(camelContext, boolean.class, value)); return true;
         case "streamcachingbuffersize":
@@ -175,12 +195,6 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "UseDataType": target.setUseDataType(property(camelContext, boolean.class, value)); return true;
         case "usemdclogging":
         case "UseMdcLogging": target.setUseMdcLogging(property(camelContext, boolean.class, value)); return true;
-        case "xmlrests":
-        case "XmlRests": target.setXmlRests(property(camelContext, java.lang.String.class, value)); return true;
-        case "xmlroutetemplates":
-        case "XmlRouteTemplates": target.setXmlRouteTemplates(property(camelContext, java.lang.String.class, value)); return true;
-        case "xmlroutes":
-        case "XmlRoutes": target.setXmlRoutes(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
     }
@@ -198,6 +212,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "AutoConfigurationFailFast": return boolean.class;
         case "autoconfigurationlogsummary":
         case "AutoConfigurationLogSummary": return boolean.class;
+        case "autoconfigurationsystempropertiesenabled":
+        case "AutoConfigurationSystemPropertiesEnabled": return boolean.class;
         case "autostartup":
         case "AutoStartup": return boolean.class;
         case "autowiredenabled":
@@ -282,8 +298,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RouteControllerIncludeRoutes": return java.lang.String.class;
         case "routecontrollerinitialdelay":
         case "RouteControllerInitialDelay": return long.class;
-        case "routecontrollerroutestartuplogginglevel":
-        case "RouteControllerRouteStartupLoggingLevel": return org.apache.camel.LoggingLevel.class;
+        case "routecontrollerlogginglevel":
+        case "RouteControllerLoggingLevel": return org.apache.camel.LoggingLevel.class;
         case "routecontrollersuperviseenabled":
         case "RouteControllerSuperviseEnabled": return boolean.class;
         case "routecontrollerthreadpoolsize":
@@ -300,6 +316,10 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RoutesBuilders": return java.util.List.class;
         case "routescollectorenabled":
         case "RoutesCollectorEnabled": return boolean.class;
+        case "routesexcludepattern":
+        case "RoutesExcludePattern": return java.lang.String.class;
+        case "routesincludepattern":
+        case "RoutesIncludePattern": return java.lang.String.class;
         case "shutdownloginflightexchangesontimeout":
         case "ShutdownLogInflightExchangesOnTimeout": return boolean.class;
         case "shutdownnowontimeout":
@@ -310,6 +330,20 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "ShutdownSuppressLoggingOnTimeout": return boolean.class;
         case "shutdowntimeout":
         case "ShutdownTimeout": return int.class;
+        case "startuprecorder":
+        case "StartupRecorder": return java.lang.String.class;
+        case "startuprecorderdir":
+        case "StartupRecorderDir": return java.lang.String.class;
+        case "startuprecorderduration":
+        case "StartupRecorderDuration": return long.class;
+        case "startuprecordermaxdepth":
+        case "StartupRecorderMaxDepth": return int.class;
+        case "startuprecorderprofile":
+        case "StartupRecorderProfile": return java.lang.String.class;
+        case "startuprecorderrecording":
+        case "StartupRecorderRecording": return boolean.class;
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": return org.apache.camel.StartupSummaryLevel.class;
         case "streamcachinganyspoolrules":
         case "StreamCachingAnySpoolRules": return boolean.class;
         case "streamcachingbuffersize":
@@ -342,12 +376,6 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "UseDataType": return boolean.class;
         case "usemdclogging":
         case "UseMdcLogging": return boolean.class;
-        case "xmlrests":
-        case "XmlRests": return java.lang.String.class;
-        case "xmlroutetemplates":
-        case "XmlRouteTemplates": return java.lang.String.class;
-        case "xmlroutes":
-        case "XmlRoutes": return java.lang.String.class;
         default: return null;
         }
     }
@@ -366,6 +394,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "AutoConfigurationFailFast": return target.isAutoConfigurationFailFast();
         case "autoconfigurationlogsummary":
         case "AutoConfigurationLogSummary": return target.isAutoConfigurationLogSummary();
+        case "autoconfigurationsystempropertiesenabled":
+        case "AutoConfigurationSystemPropertiesEnabled": return target.isAutoConfigurationSystemPropertiesEnabled();
         case "autostartup":
         case "AutoStartup": return target.isAutoStartup();
         case "autowiredenabled":
@@ -450,8 +480,8 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RouteControllerIncludeRoutes": return target.getRouteControllerIncludeRoutes();
         case "routecontrollerinitialdelay":
         case "RouteControllerInitialDelay": return target.getRouteControllerInitialDelay();
-        case "routecontrollerroutestartuplogginglevel":
-        case "RouteControllerRouteStartupLoggingLevel": return target.getRouteControllerRouteStartupLoggingLevel();
+        case "routecontrollerlogginglevel":
+        case "RouteControllerLoggingLevel": return target.getRouteControllerLoggingLevel();
         case "routecontrollersuperviseenabled":
         case "RouteControllerSuperviseEnabled": return target.isRouteControllerSuperviseEnabled();
         case "routecontrollerthreadpoolsize":
@@ -468,6 +498,10 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "RoutesBuilders": return target.getRoutesBuilders();
         case "routescollectorenabled":
         case "RoutesCollectorEnabled": return target.isRoutesCollectorEnabled();
+        case "routesexcludepattern":
+        case "RoutesExcludePattern": return target.getRoutesExcludePattern();
+        case "routesincludepattern":
+        case "RoutesIncludePattern": return target.getRoutesIncludePattern();
         case "shutdownloginflightexchangesontimeout":
         case "ShutdownLogInflightExchangesOnTimeout": return target.isShutdownLogInflightExchangesOnTimeout();
         case "shutdownnowontimeout":
@@ -478,6 +512,20 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "ShutdownSuppressLoggingOnTimeout": return target.isShutdownSuppressLoggingOnTimeout();
         case "shutdowntimeout":
         case "ShutdownTimeout": return target.getShutdownTimeout();
+        case "startuprecorder":
+        case "StartupRecorder": return target.getStartupRecorder();
+        case "startuprecorderdir":
+        case "StartupRecorderDir": return target.getStartupRecorderDir();
+        case "startuprecorderduration":
+        case "StartupRecorderDuration": return target.getStartupRecorderDuration();
+        case "startuprecordermaxdepth":
+        case "StartupRecorderMaxDepth": return target.getStartupRecorderMaxDepth();
+        case "startuprecorderprofile":
+        case "StartupRecorderProfile": return target.getStartupRecorderProfile();
+        case "startuprecorderrecording":
+        case "StartupRecorderRecording": return target.isStartupRecorderRecording();
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": return target.getStartupSummaryLevel();
         case "streamcachinganyspoolrules":
         case "StreamCachingAnySpoolRules": return target.isStreamCachingAnySpoolRules();
         case "streamcachingbuffersize":
@@ -510,12 +558,6 @@ public class MainConfigurationPropertiesConfigurer extends org.apache.camel.supp
         case "UseDataType": return target.isUseDataType();
         case "usemdclogging":
         case "UseMdcLogging": return target.isUseMdcLogging();
-        case "xmlrests":
-        case "XmlRests": return target.getXmlRests();
-        case "xmlroutetemplates":
-        case "XmlRouteTemplates": return target.getXmlRouteTemplates();
-        case "xmlroutes":
-        case "XmlRoutes": return target.getXmlRoutes();
         default: return null;
         }
     }

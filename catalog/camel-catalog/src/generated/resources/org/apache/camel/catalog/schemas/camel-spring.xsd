@@ -2609,6 +2609,14 @@ this and can report the Camel application as DOWN. Default value: false
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="loggingLevel" type="xs:string">
+          <xs:annotation>
+            <xs:documentation xml:lang="en"><![CDATA[
+Sets the logging level used for logging route activity (such as starting and
+stopping routes). The default logging level is DEBUG. Default value: DEBUG
+            ]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -6643,7 +6651,7 @@ Class name of the java type to use when unmarshalling.
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="jsonView" type="xs:string">
+        <xs:attribute name="jsonViewTypeName" type="xs:string">
           <xs:annotation>
             <xs:documentation xml:lang="en"><![CDATA[
 When marshalling a POJO to JSON you might want to exclude certain fields from
@@ -6966,7 +6974,7 @@ Class name of the java type to use when unmarshalling.
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="jsonView" type="xs:string">
+        <xs:attribute name="jsonViewTypeName" type="xs:string">
           <xs:annotation>
             <xs:documentation xml:lang="en"><![CDATA[
 When marshalling a POJO to JSON you might want to exclude certain fields from
@@ -8451,6 +8459,7 @@ Will only synchronize when the org.apache.camel.Exchange ended with failure
 If enabled then the on completion process will run asynchronously by a separate
 thread from a thread pool. By default this is false, meaning the on completion
 process will run synchronously using the same caller thread as from the route.
+Default value: false
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
@@ -8459,7 +8468,7 @@ process will run synchronously using the same caller thread as from the route.
             <xs:documentation xml:lang="en"><![CDATA[
 Refers to a custom Thread Pool to be used for parallel processing. Notice if you
 set this option, then parallel processing is automatic implied, and you do not
-have to enable that option as well. Default value: false
+have to enable that option as well.
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
@@ -13925,6 +13934,14 @@ separated by comma.
             ]]></xs:documentation>
           </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="startupSummaryLevel" type="tns:startupSummaryLevel">
+          <xs:annotation>
+            <xs:documentation xml:lang="en"><![CDATA[
+Controls the level of information logged during startup (and shutdown) of
+CamelContext. Default value: Default
+            ]]></xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="trace" type="xs:string">
           <xs:annotation>
             <xs:documentation xml:lang="en"><![CDATA[
@@ -14675,6 +14692,17 @@ Sets a reference to a thread pool to be used by the error handler.
       <xs:enumeration value="allLocalIp"/>
       <xs:enumeration value="localIp"/>
       <xs:enumeration value="localHostName"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="startupSummaryLevel">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Classic"/>
+      <xs:enumeration value="Verbose"/>
+      <xs:enumeration value="Default"/>
+      <xs:enumeration value="Brief"/>
+      <xs:enumeration value="Oneline"/>
+      <xs:enumeration value="Off"/>
     </xs:restriction>
   </xs:simpleType>
 

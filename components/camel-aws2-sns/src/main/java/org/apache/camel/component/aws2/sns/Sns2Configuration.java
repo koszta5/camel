@@ -20,6 +20,7 @@ import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
+import org.apache.camel.util.ObjectHelper;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.services.sns.SnsClient;
 
@@ -144,7 +145,7 @@ public class Sns2Configuration implements Cloneable {
     }
 
     /**
-     * The policy for this queue. Is loaded by default from classpath, but you can prefix with "classpath:", "file:", or
+     * The policy for this topic. Is loaded by default from classpath, but you can prefix with "classpath:", "file:", or
      * "http:" to load the resource from different systems.
      */
     public void setPolicy(String policy) {
@@ -346,11 +347,19 @@ public class Sns2Configuration implements Cloneable {
     }
 
     /**
-     * Whether or not the queue is a FIFO topic
+     * Whether or not the topic is a FIFO topic
      */
     boolean isFifoTopic() {
         // AWS docs suggest this is valid derivation.
         // FIFO topic names must end with .fifo, and standard topic cannot
-        return topicName.endsWith(".fifo");
+        if (ObjectHelper.isNotEmpty(topicName)) {
+            if (topicName.endsWith(".fifo")) {
+                return true;
+            }
+        }
+        if (ObjectHelper.isNotEmpty(topicArn)) {
+            return topicArn.endsWith(".fifo");
+        }
+        return false;
     }
 }

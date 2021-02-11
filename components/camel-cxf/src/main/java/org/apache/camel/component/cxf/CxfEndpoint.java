@@ -208,6 +208,9 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
     private Map<String, Object> properties;
     @UriParam(label = "producer")
     private CookieHandler cookieHandler;
+    @UriParam(defaultValue = "false", label = "producer,advanced",
+              description = "Sets whether synchronous processing should be strictly used")
+    private boolean synchronous;
 
     public CxfEndpoint() {
         setExchangePattern(ExchangePattern.InOut);
@@ -575,7 +578,7 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
         try {
             Object sf = factoryBean.getClass().getMethod("getServiceFactory").invoke(factoryBean);
             sf.getClass().getMethod("setWrapped", Boolean.TYPE).invoke(sf, wrapped);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             throw new RuntimeException(t);
         }
     }
@@ -1014,7 +1017,7 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
                 PropertyBindingSupport.bindProperties(getCamelContext(),
                         this,
                         this.properties);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 // TODO: Why dont't we rethrown this exception
                 LOG.warn("Error setting CamelContext. This exception will be ignored.", e);
             }
@@ -1036,7 +1039,7 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
                 PropertyBindingSupport.bindProperties(getCamelContext(),
                         this,
                         this.properties);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 // TODO: Why dont't we rethrown this exception
                 LOG.warn("Error setting properties. This exception will be ignored.", e);
             }
@@ -1052,6 +1055,14 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
      */
     public void setCookieHandler(CookieHandler cookieHandler) {
         this.cookieHandler = cookieHandler;
+    }
+
+    public boolean isSynchronous() {
+        return synchronous;
+    }
+
+    public void setSynchronous(boolean synchronous) {
+        this.synchronous = synchronous;
     }
 
     @Override
@@ -1073,7 +1084,7 @@ public class CxfEndpoint extends DefaultEndpoint implements AsyncEndpoint, Heade
     protected void doStop() throws Exception {
         // we should consider to shutdown the bus if the bus is created by cxfEndpoint
         if (createBus && bus != null) {
-            LOG.info("shutdown the bus ... {}", bus);
+            LOG.debug("Shutdown CXF bus {}", bus);
             getBus().shutdown(false);
             // clean up the bus to create a new one if the endpoint is started again
             bus = null;

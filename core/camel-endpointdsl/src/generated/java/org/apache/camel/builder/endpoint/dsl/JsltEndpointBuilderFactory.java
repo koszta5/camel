@@ -34,9 +34,6 @@ public interface JsltEndpointBuilderFactory {
      * Builder for endpoint for the JSLT component.
      */
     public interface JsltEndpointBuilder extends EndpointProducerBuilder {
-        default AdvancedJsltEndpointBuilder advanced() {
-            return (AdvancedJsltEndpointBuilder) this;
-        }
         /**
          * Sets whether the context map should allow access to all details. By
          * default only the message body and headers can be accessed. This
@@ -150,37 +147,6 @@ public interface JsltEndpointBuilderFactory {
             return this;
         }
         /**
-         * If true, JSON in output message is pretty printed.
-         * 
-         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
-         * 
-         * Default: false
-         * Group: common
-         * 
-         * @param prettyPrint the value to set
-         * @return the dsl builder
-         */
-        default JsltEndpointBuilder prettyPrint(boolean prettyPrint) {
-            doSetProperty("prettyPrint", prettyPrint);
-            return this;
-        }
-        /**
-         * If true, JSON in output message is pretty printed.
-         * 
-         * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
-         * type.
-         * 
-         * Default: false
-         * Group: common
-         * 
-         * @param prettyPrint the value to set
-         * @return the dsl builder
-         */
-        default JsltEndpointBuilder prettyPrint(String prettyPrint) {
-            doSetProperty("prettyPrint", prettyPrint);
-            return this;
-        }
-        /**
          * Whether the producer should be started lazy (on the first message).
          * By starting lazy you can use this to allow CamelContext and routes to
          * startup in situations where a producer may otherwise fail during
@@ -227,48 +193,102 @@ public interface JsltEndpointBuilderFactory {
             doSetProperty("lazyStartProducer", lazyStartProducer);
             return this;
         }
-    }
-
-    /**
-     * Advanced builder for endpoint for the JSLT component.
-     */
-    public interface AdvancedJsltEndpointBuilder
-            extends
-                EndpointProducerBuilder {
-        default JsltEndpointBuilder basic() {
-            return (JsltEndpointBuilder) this;
-        }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * If true, the mapper will use the USE_BIG_DECIMAL_FOR_FLOATS in
+         * serialization features.
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
          * Default: false
-         * Group: advanced
+         * Group: producer
          * 
-         * @param synchronous the value to set
+         * @param mapBigDecimalAsFloats the value to set
          * @return the dsl builder
          */
-        default AdvancedJsltEndpointBuilder synchronous(boolean synchronous) {
-            doSetProperty("synchronous", synchronous);
+        default JsltEndpointBuilder mapBigDecimalAsFloats(
+                boolean mapBigDecimalAsFloats) {
+            doSetProperty("mapBigDecimalAsFloats", mapBigDecimalAsFloats);
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * If true, the mapper will use the USE_BIG_DECIMAL_FOR_FLOATS in
+         * serialization features.
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
          * 
          * Default: false
-         * Group: advanced
+         * Group: producer
          * 
-         * @param synchronous the value to set
+         * @param mapBigDecimalAsFloats the value to set
          * @return the dsl builder
          */
-        default AdvancedJsltEndpointBuilder synchronous(String synchronous) {
-            doSetProperty("synchronous", synchronous);
+        default JsltEndpointBuilder mapBigDecimalAsFloats(
+                String mapBigDecimalAsFloats) {
+            doSetProperty("mapBigDecimalAsFloats", mapBigDecimalAsFloats);
+            return this;
+        }
+        /**
+         * Setting a custom JSON Object Mapper to be used.
+         * 
+         * The option is a:
+         * &lt;code&gt;com.fasterxml.jackson.databind.ObjectMapper&lt;/code&gt;
+         * type.
+         * 
+         * Group: producer
+         * 
+         * @param objectMapper the value to set
+         * @return the dsl builder
+         */
+        default JsltEndpointBuilder objectMapper(Object objectMapper) {
+            doSetProperty("objectMapper", objectMapper);
+            return this;
+        }
+        /**
+         * Setting a custom JSON Object Mapper to be used.
+         * 
+         * The option will be converted to a
+         * &lt;code&gt;com.fasterxml.jackson.databind.ObjectMapper&lt;/code&gt;
+         * type.
+         * 
+         * Group: producer
+         * 
+         * @param objectMapper the value to set
+         * @return the dsl builder
+         */
+        default JsltEndpointBuilder objectMapper(String objectMapper) {
+            doSetProperty("objectMapper", objectMapper);
+            return this;
+        }
+        /**
+         * If true, JSON in output message is pretty printed.
+         * 
+         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
+         * 
+         * Default: false
+         * Group: common
+         * 
+         * @param prettyPrint the value to set
+         * @return the dsl builder
+         */
+        default JsltEndpointBuilder prettyPrint(boolean prettyPrint) {
+            doSetProperty("prettyPrint", prettyPrint);
+            return this;
+        }
+        /**
+         * If true, JSON in output message is pretty printed.
+         * 
+         * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
+         * type.
+         * 
+         * Default: false
+         * Group: common
+         * 
+         * @param prettyPrint the value to set
+         * @return the dsl builder
+         */
+        default JsltEndpointBuilder prettyPrint(String prettyPrint) {
+            doSetProperty("prettyPrint", prettyPrint);
             return this;
         }
     }
@@ -326,7 +346,7 @@ public interface JsltEndpointBuilderFactory {
         }
     }
     static JsltEndpointBuilder endpointBuilder(String componentName, String path) {
-        class JsltEndpointBuilderImpl extends AbstractEndpointBuilder implements JsltEndpointBuilder, AdvancedJsltEndpointBuilder {
+        class JsltEndpointBuilderImpl extends AbstractEndpointBuilder implements JsltEndpointBuilder {
             public JsltEndpointBuilderImpl(String path) {
                 super(componentName, path);
             }

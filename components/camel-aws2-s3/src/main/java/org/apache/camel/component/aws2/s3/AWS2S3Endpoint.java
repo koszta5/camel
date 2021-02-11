@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -107,16 +107,12 @@ public class AWS2S3Endpoint extends ScheduledPollEndpoint {
         String prefix = getConfiguration().getPrefix();
 
         try {
-            ListObjectsRequest.Builder builder = ListObjectsRequest.builder();
-            builder.bucket(bucketName);
-            builder.prefix(prefix);
-            builder.maxKeys(maxMessagesPerPoll);
-            s3Client.listObjects(builder.build());
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
             LOG.trace("Bucket [{}] already exists", bucketName);
             return;
         } catch (AwsServiceException ase) {
             /* 404 means the bucket doesn't exist */
-            if (ase.awsErrorDetails().errorCode().equalsIgnoreCase("404")) {
+            if (!(ase.awsErrorDetails().sdkHttpResponse().statusCode() == 404)) {
                 throw ase;
             }
         }
@@ -192,6 +188,7 @@ public class AWS2S3Endpoint extends ScheduledPollEndpoint {
         message.setHeader(AWS2S3Constants.EXPIRATION_TIME, s3Object.response().expiration());
         message.setHeader(AWS2S3Constants.REPLICATION_STATUS, s3Object.response().replicationStatus());
         message.setHeader(AWS2S3Constants.STORAGE_CLASS, s3Object.response().storageClass());
+        message.setHeader(AWS2S3Constants.METADATA, s3Object.response().metadata());
 
         /*
          * If includeBody == true, it is safe to close the object here because the S3Object

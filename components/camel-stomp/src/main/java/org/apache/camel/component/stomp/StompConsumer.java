@@ -28,7 +28,6 @@ public class StompConsumer extends DefaultConsumer {
 
     public StompConsumer(Endpoint endpoint, Processor processor) {
         super(endpoint, processor);
-        id = getEndpoint().getNextId();
     }
 
     @Override
@@ -38,6 +37,7 @@ public class StompConsumer extends DefaultConsumer {
 
     @Override
     protected void doStart() throws Exception {
+        id = getEndpoint().getNextId();
         getEndpoint().addConsumer(this);
         super.doStart();
     }
@@ -53,7 +53,7 @@ public class StompConsumer extends DefaultConsumer {
             exchange.getIn().getHeaders().entrySet().removeIf(e -> getEndpoint().getHeaderFilterStrategy()
                     .applyFilterToExternalHeaders(e.getKey(), e.getValue(), exchange));
             getProcessor().process(exchange);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             exchange.setException(e);
         }
 

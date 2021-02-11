@@ -127,7 +127,7 @@ The Debezium MySQL Connector component supports 80 options, which are listed bel
 | *maxQueueSize* (mysql) | Maximum size of the queue for change events read from the database log but not yet recorded or forwarded. Defaults to 8192, and should always be larger than the maximum batch size. | 8192 | int
 | *messageKeyColumns* (mysql) | A semicolon-separated list of expressions that match fully-qualified tables and column(s) to be used as message key. Each expression must match the pattern ':',where the table names could be defined as (DB_NAME.TABLE_NAME) or (SCHEMA_NAME.TABLE_NAME), depending on the specific connector,and the key columns are a comma-separated list of columns representing the custom key. For any table without an explicit key configuration the table's primary key column(s) will be used as message key.Example: dbserver1.inventory.orderlines:orderId,orderLineId;dbserver1.inventory.orders:id |  | String
 | *pollIntervalMs* (mysql) | Frequency in milliseconds to wait for new change events to appear after receiving no events. Defaults to 500ms. | 500ms | long
-| *skippedOperations* (mysql) | The comma-separated list of operations to skip during streaming, defined as: 'i' for inserts; 'u' for updates; 'd' for deletes. By default, no operations will be skipped. |  | String
+| *skippedOperations* (mysql) | The comma-separated list of operations to skip during streaming, defined as: 'c' for inserts/create; 'u' for updates; 'd' for deletes. By default, no operations will be skipped. |  | String
 | *snapshotDelayMs* (mysql) | The number of milliseconds to delay before a snapshot will begin. | 0ms | long
 | *snapshotEventsAsInserts* (mysql) | Whether or not to mark snapshot events as normal inserts (op 'c'). If disabled, the standard functionality of emitting these records as reads (op 'r') will be used. | true | boolean
 | *snapshotFetchSize* (mysql) | The maximum number of records that should be loaded into memory while performing a snapshot |  | int
@@ -166,7 +166,7 @@ with the following path and query parameters:
 |===
 
 
-=== Query Parameters (81 parameters):
+=== Query Parameters (80 parameters):
 
 
 [width="100%",cols="2,5,^1,2",options="header"]
@@ -186,7 +186,6 @@ with the following path and query parameters:
 | *offsetStorageTopic* (consumer) | The name of the Kafka topic where offsets are to be stored. Required when offset.storage is set to the KafkaOffsetBackingStore. |  | String
 | *exceptionHandler* (consumer) | To let the consumer use a custom ExceptionHandler. Notice if the option bridgeErrorHandler is enabled then this option is not in use. By default the consumer will deal with exceptions, that will be logged at WARN or ERROR level and ignored. |  | ExceptionHandler
 | *exchangePattern* (consumer) | Sets the exchange pattern when the consumer creates an exchange. There are 3 enums and the value can be one of: InOnly, InOut, InOptionalOut |  | ExchangePattern
-| *synchronous* (advanced) | Sets whether synchronous processing should be strictly used, or Camel is allowed to use asynchronous processing (if supported). | false | boolean
 | *bigintUnsignedHandlingMode* (mysql) | Specify how BIGINT UNSIGNED columns should be represented in change events, including:'precise' uses java.math.BigDecimal to represent values, which are encoded in the change events using a binary representation and Kafka Connect's 'org.apache.kafka.connect.data.Decimal' type; 'long' (the default) represents values using Java's 'long', which may not offer the precision but will be far easier to use in consumers. | long | String
 | *binaryHandlingMode* (mysql) | Specify how binary (blob, binary, etc.) columns should be represented in change events, including:'bytes' represents binary data as byte array (default)'base64' represents binary data as base64-encoded string'hex' represents binary data as hex-encoded (base16) string | bytes | String
 | *binlogBufferSize* (mysql) | The size of a look-ahead buffer used by the binlog reader to decide whether the transaction in progress is going to be committed or rolled back. Use 0 to disable look-ahead buffering. Defaults to 0 (i.e. buffering is disabled). | 0 | int
@@ -237,7 +236,7 @@ with the following path and query parameters:
 | *maxQueueSize* (mysql) | Maximum size of the queue for change events read from the database log but not yet recorded or forwarded. Defaults to 8192, and should always be larger than the maximum batch size. | 8192 | int
 | *messageKeyColumns* (mysql) | A semicolon-separated list of expressions that match fully-qualified tables and column(s) to be used as message key. Each expression must match the pattern ':',where the table names could be defined as (DB_NAME.TABLE_NAME) or (SCHEMA_NAME.TABLE_NAME), depending on the specific connector,and the key columns are a comma-separated list of columns representing the custom key. For any table without an explicit key configuration the table's primary key column(s) will be used as message key.Example: dbserver1.inventory.orderlines:orderId,orderLineId;dbserver1.inventory.orders:id |  | String
 | *pollIntervalMs* (mysql) | Frequency in milliseconds to wait for new change events to appear after receiving no events. Defaults to 500ms. | 500ms | long
-| *skippedOperations* (mysql) | The comma-separated list of operations to skip during streaming, defined as: 'i' for inserts; 'u' for updates; 'd' for deletes. By default, no operations will be skipped. |  | String
+| *skippedOperations* (mysql) | The comma-separated list of operations to skip during streaming, defined as: 'c' for inserts/create; 'u' for updates; 'd' for deletes. By default, no operations will be skipped. |  | String
 | *snapshotDelayMs* (mysql) | The number of milliseconds to delay before a snapshot will begin. | 0ms | long
 | *snapshotEventsAsInserts* (mysql) | Whether or not to mark snapshot events as normal inserts (op 'c'). If disabled, the standard functionality of emitting these records as reads (op 'r') will be used. | true | boolean
 | *snapshotFetchSize* (mysql) | The maximum number of records that should be loaded into memory while performing a snapshot |  | int

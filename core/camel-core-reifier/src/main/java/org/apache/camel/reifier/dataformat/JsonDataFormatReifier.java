@@ -40,10 +40,15 @@ public class JsonDataFormatReifier extends DataFormatReifier<JsonDataFormat> {
                 properties.put("useDefaultObjectMapper", definition.getUseDefaultObjectMapper());
             }
             properties.put("autoDiscoverObjectMapper", definition.getAutoDiscoverObjectMapper());
+            if (definition.getJsonView() != null) {
+                properties.put("jsonViewTypeName", asTypeName(definition.getJsonView()));
+            } else {
+                properties.put("jsonViewTypeName", definition.getJsonViewTypeName());
+            }
         }
         if (definition.getLibrary() != JsonLibrary.XStream) {
             if (definition.getUnmarshalType() != null) {
-                properties.put("unmarshalTypeName", definition.getUnmarshalType().getName());
+                properties.put("unmarshalTypeName", asTypeName(definition.getUnmarshalType()));
             } else {
                 properties.put("unmarshalTypeName", definition.getUnmarshalTypeName());
             }
@@ -54,7 +59,7 @@ public class JsonDataFormatReifier extends DataFormatReifier<JsonDataFormat> {
         properties.put("allowJmsType", definition.getAllowJmsType());
         if (definition.getLibrary() != JsonLibrary.XStream) {
             if (definition.getCollectionType() != null) {
-                properties.put("collectionTypeName", definition.getCollectionType().getName());
+                properties.put("collectionTypeName", asTypeName(definition.getCollectionType()));
             } else {
                 properties.put("collectionTypeName", definition.getCollectionTypeName());
             }
@@ -72,7 +77,7 @@ public class JsonDataFormatReifier extends DataFormatReifier<JsonDataFormat> {
             // if we have the unmarshal type, but no permission set, then use it to be allowed
             String type = definition.getUnmarshalTypeName();
             if (type == null && definition.getUnmarshalType() != null) {
-                type = definition.getUnmarshalType().getName();
+                type = asTypeName(definition.getUnmarshalType());
             }
             properties.put("permissions", type);
             // xstream has no unmarshalType option

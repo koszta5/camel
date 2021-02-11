@@ -26,7 +26,6 @@ public class S3EndpointUriFactory extends org.apache.camel.support.component.End
         props.add("serverSideEncryption");
         props.add("bucketNameOrArn");
         props.add("prefix");
-        props.add("synchronous");
         props.add("useAwsKMS");
         props.add("initialDelay");
         props.add("proxyPort");
@@ -62,6 +61,7 @@ public class S3EndpointUriFactory extends org.apache.camel.support.component.End
         props.add("multiPartUpload");
         props.add("storageClass");
         props.add("useFixedDelay");
+        props.add("doneFileName");
         props.add("runLoggingLevel");
         props.add("backoffErrorThreshold");
         props.add("policy");

@@ -35,6 +35,8 @@ public class JmsEndpointConfigurer extends PropertyConfigurerSupport implements 
         case "allowSerializedHeaders": target.getConfiguration().setAllowSerializedHeaders(property(camelContext, boolean.class, value)); return true;
         case "alwayscopymessage":
         case "alwaysCopyMessage": target.getConfiguration().setAlwaysCopyMessage(property(camelContext, boolean.class, value)); return true;
+        case "artemisconsumerpriority":
+        case "artemisConsumerPriority": target.getConfiguration().setArtemisConsumerPriority(property(camelContext, int.class, value)); return true;
         case "artemisstreamingenabled":
         case "artemisStreamingEnabled": target.getConfiguration().setArtemisStreamingEnabled(property(camelContext, boolean.class, value)); return true;
         case "asyncconsumer":
@@ -176,7 +178,7 @@ public class JmsEndpointConfigurer extends PropertyConfigurerSupport implements 
         case "subscriptionName": target.getConfiguration().setSubscriptionName(property(camelContext, java.lang.String.class, value)); return true;
         case "subscriptionshared":
         case "subscriptionShared": target.getConfiguration().setSubscriptionShared(property(camelContext, boolean.class, value)); return true;
-        case "synchronous": target.setSynchronous(property(camelContext, boolean.class, value)); return true;
+        case "synchronous": target.getConfiguration().setSynchronous(property(camelContext, boolean.class, value)); return true;
         case "taskexecutor":
         case "taskExecutor": target.getConfiguration().setTaskExecutor(property(camelContext, org.springframework.core.task.TaskExecutor.class, value)); return true;
         case "testconnectiononstartup":
@@ -224,6 +226,8 @@ public class JmsEndpointConfigurer extends PropertyConfigurerSupport implements 
         case "allowSerializedHeaders": return boolean.class;
         case "alwayscopymessage":
         case "alwaysCopyMessage": return boolean.class;
+        case "artemisconsumerpriority":
+        case "artemisConsumerPriority": return int.class;
         case "artemisstreamingenabled":
         case "artemisStreamingEnabled": return boolean.class;
         case "asyncconsumer":
@@ -414,6 +418,8 @@ public class JmsEndpointConfigurer extends PropertyConfigurerSupport implements 
         case "allowSerializedHeaders": return target.getConfiguration().isAllowSerializedHeaders();
         case "alwayscopymessage":
         case "alwaysCopyMessage": return target.getConfiguration().isAlwaysCopyMessage();
+        case "artemisconsumerpriority":
+        case "artemisConsumerPriority": return target.getConfiguration().getArtemisConsumerPriority();
         case "artemisstreamingenabled":
         case "artemisStreamingEnabled": return target.getConfiguration().isArtemisStreamingEnabled();
         case "asyncconsumer":
@@ -555,7 +561,7 @@ public class JmsEndpointConfigurer extends PropertyConfigurerSupport implements 
         case "subscriptionName": return target.getConfiguration().getSubscriptionName();
         case "subscriptionshared":
         case "subscriptionShared": return target.getConfiguration().isSubscriptionShared();
-        case "synchronous": return target.isSynchronous();
+        case "synchronous": return target.getConfiguration().isSynchronous();
         case "taskexecutor":
         case "taskExecutor": return target.getConfiguration().getTaskExecutor();
         case "testconnectiononstartup":

@@ -135,6 +135,8 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "RouteController": target.setRouteController(property(camelContext, org.apache.camel.spi.RouteController.class, value)); return true;
         case "routefactory":
         case "RouteFactory": target.setRouteFactory(property(camelContext, org.apache.camel.spi.RouteFactory.class, value)); return true;
+        case "routesloader":
+        case "RoutesLoader": target.setRoutesLoader(property(camelContext, org.apache.camel.spi.RoutesLoader.class, value)); return true;
         case "runtimecamelcatalog":
         case "RuntimeCamelCatalog": target.setRuntimeCamelCatalog(property(camelContext, org.apache.camel.catalog.RuntimeCamelCatalog.class, value)); return true;
         case "runtimeendpointregistry":
@@ -147,6 +149,10 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "ShutdownRunningTask": target.setShutdownRunningTask(property(camelContext, org.apache.camel.ShutdownRunningTask.class, value)); return true;
         case "shutdownstrategy":
         case "ShutdownStrategy": target.setShutdownStrategy(property(camelContext, org.apache.camel.spi.ShutdownStrategy.class, value)); return true;
+        case "startupsteprecorder":
+        case "StartupStepRecorder": target.setStartupStepRecorder(property(camelContext, org.apache.camel.spi.StartupStepRecorder.class, value)); return true;
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": target.setStartupSummaryLevel(property(camelContext, org.apache.camel.StartupSummaryLevel.class, value)); return true;
         case "streamcaching":
         case "StreamCaching": target.setStreamCaching(property(camelContext, java.lang.Boolean.class, value)); return true;
         case "streamcachingstrategy":
@@ -296,6 +302,8 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "RouteController": return org.apache.camel.spi.RouteController.class;
         case "routefactory":
         case "RouteFactory": return org.apache.camel.spi.RouteFactory.class;
+        case "routesloader":
+        case "RoutesLoader": return org.apache.camel.spi.RoutesLoader.class;
         case "runtimecamelcatalog":
         case "RuntimeCamelCatalog": return org.apache.camel.catalog.RuntimeCamelCatalog.class;
         case "runtimeendpointregistry":
@@ -308,6 +316,10 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "ShutdownRunningTask": return org.apache.camel.ShutdownRunningTask.class;
         case "shutdownstrategy":
         case "ShutdownStrategy": return org.apache.camel.spi.ShutdownStrategy.class;
+        case "startupsteprecorder":
+        case "StartupStepRecorder": return org.apache.camel.spi.StartupStepRecorder.class;
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": return org.apache.camel.StartupSummaryLevel.class;
         case "streamcaching":
         case "StreamCaching": return java.lang.Boolean.class;
         case "streamcachingstrategy":
@@ -458,6 +470,8 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "RouteController": return target.getRouteController();
         case "routefactory":
         case "RouteFactory": return target.getRouteFactory();
+        case "routesloader":
+        case "RoutesLoader": return target.getRoutesLoader();
         case "runtimecamelcatalog":
         case "RuntimeCamelCatalog": return target.getRuntimeCamelCatalog();
         case "runtimeendpointregistry":
@@ -470,6 +484,10 @@ public class ExtendedCamelContextConfigurer extends org.apache.camel.support.com
         case "ShutdownRunningTask": return target.getShutdownRunningTask();
         case "shutdownstrategy":
         case "ShutdownStrategy": return target.getShutdownStrategy();
+        case "startupsteprecorder":
+        case "StartupStepRecorder": return target.getStartupStepRecorder();
+        case "startupsummarylevel":
+        case "StartupSummaryLevel": return target.getStartupSummaryLevel();
         case "streamcaching":
         case "StreamCaching": return target.isStreamCaching();
         case "streamcachingstrategy":

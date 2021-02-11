@@ -24,6 +24,7 @@ import java.util.Queue;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -66,9 +67,12 @@ public class S3Consumer extends ScheduledBatchPollingConsumer {
 
         String fileName = getConfiguration().getFileName();
         String bucketName = getConfiguration().getBucketName();
+        String doneFileName = getConfiguration().getDoneFileName();
         Queue<Exchange> exchanges;
 
-        if (fileName != null) {
+        if (!doneFileCheckPasses(bucketName, doneFileName)) {
+            exchanges = new LinkedList<>();
+        } else if (fileName != null) {
             LOG.trace("Getting object in bucket [{}] with file name [{}]...", bucketName, fileName);
 
             S3Object s3Object = getAmazonS3Client().getObject(new GetObjectRequest(bucketName, fileName));
@@ -108,6 +112,26 @@ public class S3Consumer extends ScheduledBatchPollingConsumer {
         return processBatch(CastUtils.cast(exchanges));
     }
 
+    private boolean doneFileCheckPasses(String bucketName, String doneFileName) {
+        if (doneFileName == null) {
+            return true;
+        } else {
+            return checkFileExists(bucketName, doneFileName);
+        }
+    }
+
+    private boolean checkFileExists(String bucketName, String doneFileName) {
+        try {
+            getAmazonS3Client().getObjectMetadata(bucketName, doneFileName);
+            return true;
+        } catch (AmazonS3Exception e) {
+            if (e.getStatusCode() == 404) {
+                return false;
+            }
+            throw e;
+        }
+    }
+
     protected Queue<Exchange> createExchanges(S3Object s3Object) {
         Queue<Exchange> answer = new LinkedList<>();
         Exchange exchange = getEndpoint().createExchange(s3Object);
@@ -130,7 +154,7 @@ public class S3Consumer extends ScheduledBatchPollingConsumer {
                 Exchange exchange = getEndpoint().createExchange(s3Object);
                 answer.add(exchange);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.warn("Error getting S3Object due: {}", e.getMessage(), e);
             // ensure all previous gathered s3 objects are closed
             // if there was an exception creating the exchanges in this batch

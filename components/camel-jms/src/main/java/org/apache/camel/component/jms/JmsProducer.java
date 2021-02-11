@@ -157,7 +157,7 @@ public class JmsProducer extends DefaultAsyncProducer {
                 // in only
                 return processInOnly(exchange, callback);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // must catch exception to ensure callback is invoked as expected
             // to let Camel error handling deal with this
             exchange.setException(e);
@@ -179,9 +179,6 @@ public class JmsProducer extends DefaultAsyncProducer {
         Destination destination = in.getHeader(JmsConstants.JMS_DESTINATION, Destination.class);
         // remove the header so it wont be propagated
         in.removeHeader(JmsConstants.JMS_DESTINATION);
-        if (destination == null) {
-            destination = endpoint.getDestination();
-        }
         if (destination != null) {
             // prefer to use destination over destination name
             destinationName = null;
@@ -313,9 +310,6 @@ public class JmsProducer extends DefaultAsyncProducer {
         if (destination != null) {
             // remove the header so it wont be propagated
             in.removeHeader(JmsConstants.JMS_DESTINATION);
-        }
-        if (destination == null) {
-            destination = endpoint.getDestination();
         }
         if (destination != null) {
             // prefer to use destination over destination name

@@ -24,7 +24,7 @@ public class RouteStartupLoggingLevelTest extends SimpleMockTest {
     @Override
     protected CamelContext createCamelContext() throws Exception {
         CamelContext context = super.createCamelContext();
-        context.getRouteController().setRouteStartupLoggingLevel(LoggingLevel.WARN);
+        context.getRouteController().setLoggingLevel(LoggingLevel.WARN);
         return context;
     }
 }

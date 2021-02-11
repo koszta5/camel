@@ -36,4 +36,5 @@ public abstract class BaseVertxKafkaConfiguration implements HeaderFilterStrateg
     public void setHeaderFilterStrategy(HeaderFilterStrategy headerFilterStrategy) {
         this.headerFilterStrategy = headerFilterStrategy;
     }
+
 }

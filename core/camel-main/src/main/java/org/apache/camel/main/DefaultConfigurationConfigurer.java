@@ -59,6 +59,7 @@ import org.apache.camel.spi.RouteController;
 import org.apache.camel.spi.RoutePolicyFactory;
 import org.apache.camel.spi.RuntimeEndpointRegistry;
 import org.apache.camel.spi.ShutdownStrategy;
+import org.apache.camel.spi.StartupStepRecorder;
 import org.apache.camel.spi.StreamCachingStrategy;
 import org.apache.camel.spi.SupervisingRouteController;
 import org.apache.camel.spi.ThreadPoolFactory;
@@ -66,6 +67,7 @@ import org.apache.camel.spi.ThreadPoolProfile;
 import org.apache.camel.spi.UnitOfWorkFactory;
 import org.apache.camel.spi.UuidGenerator;
 import org.apache.camel.support.jsse.GlobalSSLContextParametersSupplier;
+import org.apache.camel.support.startup.LoggingStartupStepRecorder;
 import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +89,29 @@ public final class DefaultConfigurationConfigurer {
      * @param camelContext the camel context
      * @param config       the configuration
      */
-    public static void configure(CamelContext camelContext, DefaultConfigurationProperties config) throws Exception {
+    public static void configure(CamelContext camelContext, DefaultConfigurationProperties<?> config) throws Exception {
         ExtendedCamelContext ecc = camelContext.adapt(ExtendedCamelContext.class);
+
+        if (config.getStartupRecorder() != null) {
+            if ("false".equals(config.getStartupRecorder())) {
+                ecc.getStartupStepRecorder().setEnabled(false);
+            } else if ("logging".equals(config.getStartupRecorder())) {
+                if (!(ecc.getStartupStepRecorder() instanceof LoggingStartupStepRecorder)) {
+                    ecc.setStartupStepRecorder(new LoggingStartupStepRecorder());
+                }
+            } else if ("java-flight-recorder".equals(config.getStartupRecorder())) {
+                if (!ecc.getStartupStepRecorder().getClass().getName().startsWith("org.apache.camel.startup.jfr")) {
+                    throw new IllegalArgumentException(
+                            "Cannot find Camel Java Flight Recorder on classpath. Add camel-jfr to classpath.");
+                }
+            }
+        }
+        ecc.getStartupStepRecorder().setMaxDepth(config.getStartupRecorderMaxDepth());
+        ecc.getStartupStepRecorder().setRecording(config.isStartupRecorderRecording());
+        ecc.getStartupStepRecorder().setStartupRecorderDuration(config.getStartupRecorderDuration());
+        ecc.getStartupStepRecorder().setRecordingDir(config.getStartupRecorderDir());
+        ecc.getStartupStepRecorder().setRecordingProfile(config.getStartupRecorderProfile());
+
         ecc.setLightweight(config.isLightweight());
         ecc.getBeanPostProcessor().setEnabled(config.isBeanPostProcessorEnabled());
         ecc.getBeanIntrospection().setExtendedStatistics(config.isBeanIntrospectionExtendedStatistics());
@@ -103,6 +126,9 @@ public final class DefaultConfigurationConfigurer {
 
         if (config.getName() != null) {
             ecc.setName(config.getName());
+        }
+        if (config.getStartupSummaryLevel() != null) {
+            camelContext.setStartupSummaryLevel(config.getStartupSummaryLevel());
         }
 
         if (config.getShutdownTimeout() > 0) {
@@ -222,8 +248,8 @@ public final class DefaultConfigurationConfigurer {
             }
             src.setUnhealthyOnExhausted(config.isRouteControllerUnhealthyOnExhausted());
         }
-        if (config.getRouteControllerRouteStartupLoggingLevel() != null) {
-            camelContext.getRouteController().setRouteStartupLoggingLevel(config.getRouteControllerRouteStartupLoggingLevel());
+        if (config.getRouteControllerLoggingLevel() != null) {
+            camelContext.getRouteController().setLoggingLevel(config.getRouteControllerLoggingLevel());
         }
     }
 
@@ -239,6 +265,10 @@ public final class DefaultConfigurationConfigurer {
         final ManagementStrategy managementStrategy = camelContext.getManagementStrategy();
         final ExtendedCamelContext ecc = camelContext.adapt(ExtendedCamelContext.class);
 
+        StartupStepRecorder ssr = getSingleBeanOfType(registry, StartupStepRecorder.class);
+        if (ssr != null) {
+            ecc.setStartupStepRecorder(ssr);
+        }
         PropertiesComponent pc = getSingleBeanOfType(registry, PropertiesComponent.class);
         if (pc != null) {
             ecc.setPropertiesComponent(pc);

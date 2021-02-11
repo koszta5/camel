@@ -31,6 +31,7 @@ import org.apache.camel.Consumer;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.MultipleConsumersSupport;
+import org.apache.camel.PollingConsumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.component.sjms.consumer.EndpointMessageListener;
@@ -258,6 +259,9 @@ public class SjmsEndpoint extends DefaultEndpoint
                             + " Note if transacted has been enabled, then asyncConsumer=true does not run asynchronously, as transaction"
                             + "  must be executed synchronously (Camel 3.0 may support async transactions).")
     private boolean asyncConsumer;
+    @UriParam(defaultValue = "false", label = "advanced",
+              description = "Sets whether synchronous processing should be strictly used")
+    private boolean synchronous;
 
     private JmsObjectFactory jmsObjectFactory = new Jms11ObjectFactory();
 
@@ -323,6 +327,13 @@ public class SjmsEndpoint extends DefaultEndpoint
         SjmsConsumer consumer = new SjmsConsumer(this, processor, container);
         configureConsumer(consumer);
         return consumer;
+    }
+
+    @Override
+    public PollingConsumer createPollingConsumer() throws Exception {
+        SjmsPollingConsumer answer = new SjmsPollingConsumer(this, createInOnlyTemplate());
+        configurePollingConsumer(answer);
+        return answer;
     }
 
     public void configureMessageListener(EndpointMessageListener listener) {
@@ -792,5 +803,13 @@ public class SjmsEndpoint extends DefaultEndpoint
 
     public void setAsyncConsumer(boolean asyncConsumer) {
         this.asyncConsumer = asyncConsumer;
+    }
+
+    public boolean isSynchronous() {
+        return synchronous;
+    }
+
+    public void setSynchronous(boolean synchronous) {
+        this.synchronous = synchronous;
     }
 }

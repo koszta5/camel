@@ -273,6 +273,54 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
+         * Consumer priorities allow you to ensure that high priority consumers
+         * receive messages while they are active. Normally, active consumers
+         * connected to a queue receive messages from it in a round-robin
+         * fashion. When consumer priorities are in use, messages are delivered
+         * round-robin if multiple active consumers exist with the same high
+         * priority. Messages will only going to lower priority consumers when
+         * the high priority consumers do not have credit available to consume
+         * the message, or those high priority consumers have declined to accept
+         * the message (for instance because it does not meet the criteria of
+         * any selectors associated with the consumer).
+         * 
+         * The option is a: &lt;code&gt;int&lt;/code&gt; type.
+         * 
+         * Group: consumer
+         * 
+         * @param artemisConsumerPriority the value to set
+         * @return the dsl builder
+         */
+        default ActiveMQEndpointConsumerBuilder artemisConsumerPriority(
+                int artemisConsumerPriority) {
+            doSetProperty("artemisConsumerPriority", artemisConsumerPriority);
+            return this;
+        }
+        /**
+         * Consumer priorities allow you to ensure that high priority consumers
+         * receive messages while they are active. Normally, active consumers
+         * connected to a queue receive messages from it in a round-robin
+         * fashion. When consumer priorities are in use, messages are delivered
+         * round-robin if multiple active consumers exist with the same high
+         * priority. Messages will only going to lower priority consumers when
+         * the high priority consumers do not have credit available to consume
+         * the message, or those high priority consumers have declined to accept
+         * the message (for instance because it does not meet the criteria of
+         * any selectors associated with the consumer).
+         * 
+         * The option will be converted to a &lt;code&gt;int&lt;/code&gt; type.
+         * 
+         * Group: consumer
+         * 
+         * @param artemisConsumerPriority the value to set
+         * @return the dsl builder
+         */
+        default ActiveMQEndpointConsumerBuilder artemisConsumerPriority(
+                String artemisConsumerPriority) {
+            doSetProperty("artemisConsumerPriority", artemisConsumerPriority);
+            return this;
+        }
+        /**
          * Whether the JmsConsumer processes the Exchange asynchronously. If
          * enabled then the JmsConsumer may pickup the next message from the JMS
          * queue, while the previous message is being processed asynchronously
@@ -2180,8 +2228,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -2197,8 +2244,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
@@ -4675,8 +4721,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -4692,8 +4737,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
@@ -6282,8 +6326,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
          * 
@@ -6298,8 +6341,7 @@ public interface ActiveMQEndpointBuilderFactory {
             return this;
         }
         /**
-         * Sets whether synchronous processing should be strictly used, or Camel
-         * is allowed to use asynchronous processing (if supported).
+         * Sets whether synchronous processing should be strictly used.
          * 
          * The option will be converted to a &lt;code&gt;boolean&lt;/code&gt;
          * type.
